@@ -34,7 +34,9 @@ import router from '@/router';
 import { defualtUriBuilder } from '@/uri';
 import axios from 'axios';
 import { onMounted, ref } from 'vue';
+import { useLoading } from 'vue3-loading-overlay';
 
+let loader = useLoading();
 
 const filesToAnnotate = ref<string[]>([]);
 const filesWithSourceData = ref<boolean[]>([]);
@@ -45,6 +47,12 @@ onMounted(() => {
 })
 
 async function getFiles() {
+    loader.show({
+        // Optional parameters
+        container: null, // fullpage
+        canCancel: false,
+        // onCancel: onCancel,
+    });
     let url = defualtUriBuilder("list")
     let data = await axios.get(url);
 
@@ -56,6 +64,7 @@ async function getFiles() {
     filesToAnnotate.value = serverFiles;
     filesWithSourceData.value = _filesWithSourceData;
     filesWithAnn.value = _filesWithAnn;
+    loader.hide();
 }
 
 function getFileName(file: string) {

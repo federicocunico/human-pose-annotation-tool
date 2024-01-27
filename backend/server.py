@@ -7,6 +7,7 @@ from flask import jsonify, request, send_from_directory, render_template_string
 from flask_cors import CORS
 import numpy as np
 from backend.extra.cv_utils import convert_to_base64, get_frame
+from backend.extra.defaults import get_2d_kpts_placeholder
 from backend.extra.links import BODY25_LINKS, OPENPOSE_LINKS, OPTITRACK_HUMAN_LINKS
 from backend.models.annotation import FrameAnnotation, Annotations
 
@@ -117,7 +118,7 @@ def get_annotation(target: str, max_frames: int) -> Annotations:
     video = target
     annotations_file = video.replace(".mp4", "_annotation.pkl")
     source_data_file = video.replace(".mp4", ".pkl")
-    if not os.path.exists(annotations_file) or True:
+    if not os.path.exists(annotations_file):
         annotations = [
             _get_annotation_from_file(source_data_file, i) for i in range(max_frames)
         ]
@@ -148,11 +149,13 @@ def _get_annotation_from_file(annotations_file: str, frame: int) -> FrameAnnotat
 
     session_dict = annotations[frame]
     kpts_3d = np.asarray(session_dict["skeletons"]["human0"]["positions"])
-    kpts_2d = np.zeros((len(kpts_3d), 2), dtype=np.int32) + 100
+    # kpts_2d = np.zeros((len(kpts_3d), 2), dtype=np.int32) + 100
+    kpts_2d = get_2d_kpts_placeholder()
     confs = np.zeros(len(kpts_2d), dtype=np.float32) + 1
 
     ann = FrameAnnotation(
         dst="<unknown>",
+        visibles=[True] * len(kpts_2d),
         frame=frame,
         names_2d=[str(i) for i in range(len(kpts_2d))],
         confidences_2d=confs.tolist(),

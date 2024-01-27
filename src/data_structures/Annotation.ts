@@ -26,6 +26,7 @@ export class Annotations {
                 this.annotations[i].toJSON()
             );
         }
+        // console.log(annotations[0].visibles)
         return {
             dst: this.dst,
             annotations: annotations
@@ -35,6 +36,7 @@ export class Annotations {
 
 export class FrameAnnotation {
     frame: number = null as unknown as number; // frame number
+    visibles: Array<boolean> = null as unknown as Array<boolean>; // whether the frame is visible or not (e.g. for occluded frames)
 
     names_2d: Array<string> = null as unknown as Array<string>;
     joints_2d: Array<Point2D> = null as unknown as Array<Point2D> // 2D coordinates of joints
@@ -51,6 +53,7 @@ export class FrameAnnotation {
 
     constructor(
         frame: number,
+        visibles: Array<boolean>,
 
         names_2d: Array<string>,
         joints_2d: Array<Point2D>,
@@ -63,6 +66,7 @@ export class FrameAnnotation {
         format_3d: string
     ) {
         this.frame = frame;
+        this.visibles = visibles;
 
         this.names_2d = names_2d;
         this.joints_2d = joints_2d;
@@ -86,6 +90,15 @@ export class FrameAnnotation {
         this.selectedPoint = -1;
     }
 
+    resetVisibility() {
+        this.joints_2d.forEach((joint) => {
+            joint.visible = true;
+        });
+        for (let i = 0; i < this.visibles.length; i++) {
+            this.visibles[i] = true;
+        }
+    }
+
     toJSON() {
         let joints2d = [];
         for (let i = 0; i < this.joints_2d.length; i++) {
@@ -100,9 +113,17 @@ export class FrameAnnotation {
                 [this.joints_3d[i].x, this.joints_3d[i].y, this.joints_3d[i].z]
             );
         }
+        let visibles = [];
+        for (let i = 0; i < this.joints_2d.length; i++) {
+            visibles.push(
+                this.joints_2d[i].visible
+            );
+        }
+        // console.log(visibles)
 
         return {
             frame: this.frame,
+            visibles: this.visibles,
             names_2d: this.names_2d,
             joints_2d: joints2d,
             links_2d: this.links_2d,
@@ -121,7 +142,8 @@ export class FrameAnnotation {
             joints2d.push(
                 new Point2D(
                     json.joints_2d[i][0],
-                    json.joints_2d[i][1]
+                    json.joints_2d[i][1],
+                    json.visibles[i]
                 )
             );
         }
@@ -138,6 +160,7 @@ export class FrameAnnotation {
 
         return new FrameAnnotation(
             json.frame,
+            json.visibles,
             json.names_2d,
             joints2d,
             json.links_2d,

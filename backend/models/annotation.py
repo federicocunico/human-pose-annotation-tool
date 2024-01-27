@@ -4,6 +4,7 @@ from ..pydantic_ext import BaseModel
 
 class FrameAnnotation(BaseModel):
     frame: int
+    visibles: list[bool]
 
     names_2d: list[str]  #  //  name of joints
     joints_2d: list[list[int]]  # Array<Point>;  // 2D coordinates of joints
