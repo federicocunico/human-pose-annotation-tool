@@ -1,0 +1,27 @@
+{
+    "settings": {
+        "json.format.keepLines": true
+    },
+    "folders": [
+        {
+            "path": "."
+        }
+    ],
+    "launch": {
+        "version": "0.2.0",
+        "configurations": [
+            // Server python
+            {
+                "name": "Server",
+                "type": "python",
+                "request": "launch",
+                "program": "${workspaceFolder}/backend/server.py",
+                "console": "integratedTerminal",
+                "env": {
+                    "PYTHONPATH": "${workspaceFolder}"
+                },
+                "cwd": "${workspaceFolder}"
+            }
+        ],
+    },
+}
