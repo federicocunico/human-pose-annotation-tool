@@ -4,7 +4,7 @@ import cv2
 import numpy as np
 
 
-def get_frame(video_or_path: str, frame_idx: int = 0) -> np.ndarray:
+def get_frame_np(video_or_path: str, frame_idx: int = 0) -> np.ndarray:
     if os.path.isfile(video_or_path):
         try:
             cap = cv2.VideoCapture(video_or_path)

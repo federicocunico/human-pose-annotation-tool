@@ -4,6 +4,7 @@ import router from "@/router";
 import { createPinia } from 'pinia'
 import "bootstrap/dist/css/bootstrap.min.css"
 import "bootstrap"
+import 'bootstrap-icons/font/bootstrap-icons.css'
 
 import '@imengyu/vue3-context-menu/lib/vue3-context-menu.css'
 import ContextMenu from '@imengyu/vue3-context-menu'

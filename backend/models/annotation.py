@@ -20,4 +20,5 @@ class FrameAnnotation(BaseModel):
 
 class Annotations(BaseModel):
     dst: str
+    # placeholder_kpts: list[list[int]] = []
     annotations: list[FrameAnnotation]

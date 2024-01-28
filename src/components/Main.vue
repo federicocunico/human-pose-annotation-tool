@@ -15,7 +15,7 @@ h3 Frame: {{ frame }} of {{ max_frames }}
     input(type="range" class="form-range" min="0" :max="max_frames" v-model="frame" step="1")
 
 .row(v-if="file")
-    .col
+    .col(v-if="has3dData")
         h4 3D Data
         Plot3D(v-if="annotation" :annotation="annotation")
     .col
@@ -35,7 +35,7 @@ div.row
 import AnnotatorVue from './Annotator.vue';
 import Plot3D from '@/components/Plot3D.vue'
 
-import { ref, onMounted, watch, watchEffect } from 'vue';
+import { ref, onMounted, watch, watchEffect, computed } from 'vue';
 import { useRoute } from 'vue-router';
 import { UriBuilder } from '@/uri';
 import axios from 'axios';
@@ -167,4 +167,12 @@ function resetVisibility() {
     }
     annotation.value?.resetVisibility();
 }
+
+const has3dData = computed(() => {
+    if (!annotation.value) {
+        return false;
+    }
+    return annotation.value.has3dData();
+})
+
 </script>

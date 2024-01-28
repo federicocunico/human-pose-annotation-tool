@@ -3,6 +3,7 @@ import { Point2D, Point3D } from "./Point";
 export class Annotations {
     dst: string = null as unknown as string; // path to the video
     annotations: Array<FrameAnnotation> = null as unknown as Array<FrameAnnotation>;
+    // placeholder_kpts: Array<Array<number>> = null as unknown as Array<Array<number>>; // placeholder keypoints
 
     constructor(dst: string, annotations: Array<FrameAnnotation>) {
         this.dst = dst;
@@ -36,6 +37,8 @@ export class Annotations {
 
 export class FrameAnnotation {
     frame: number = null as unknown as number; // frame number
+
+    // note: the following variable is only used for serialization; the actual visibility is stored in the joints_2d Point2D objects
     visibles: Array<boolean> = null as unknown as Array<boolean>; // whether the frame is visible or not (e.g. for occluded frames)
 
     names_2d: Array<string> = null as unknown as Array<string>;
@@ -99,6 +102,10 @@ export class FrameAnnotation {
         }
     }
 
+    has3dData() {
+        return this.joints_3d.length > 0;
+    }
+
     toJSON() {
         let joints2d = [];
         for (let i = 0; i < this.joints_2d.length; i++) {
@@ -113,17 +120,24 @@ export class FrameAnnotation {
                 [this.joints_3d[i].x, this.joints_3d[i].y, this.joints_3d[i].z]
             );
         }
-        let visibles = [];
+        let inferredVisibles = [];
         for (let i = 0; i < this.joints_2d.length; i++) {
-            visibles.push(
-                this.joints_2d[i].visible
+            let isPointVis = this.joints_2d[i].visible;
+            let sanityCheck = this.visibles[i];
+            if (isPointVis != sanityCheck) {
+                console.warn(
+                    "Visibility of frame " + this.frame + " is inconsistent!",
+                    "Joint " + i + " is " + isPointVis + " but frame is " + sanityCheck + "!"
+                );
+            }
+            inferredVisibles.push(
+                isPointVis
             );
         }
-        // console.log(visibles)
 
         return {
             frame: this.frame,
-            visibles: this.visibles,
+            visibles: inferredVisibles,
             names_2d: this.names_2d,
             joints_2d: joints2d,
             links_2d: this.links_2d,

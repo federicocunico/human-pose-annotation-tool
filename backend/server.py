@@ -6,8 +6,10 @@ import flask
 from flask import jsonify, request, send_from_directory, render_template_string
 from flask_cors import CORS
 import numpy as np
-from backend.extra.cv_utils import convert_to_base64, get_frame
-from backend.extra.defaults import get_2d_kpts_placeholder
+from backend.dataset.can_dataset import get_annotations_from_file
+from backend.dataset.dataset_utils import get_image_base64, natural_keys
+from backend.utility.cv_utils import convert_to_base64, get_frame_np
+from backend.defaults import get_2d_kpts_placeholder
 from backend.extra.links import BODY25_LINKS, OPENPOSE_LINKS, OPTITRACK_HUMAN_LINKS
 from backend.models.annotation import FrameAnnotation, Annotations
 
@@ -54,7 +56,7 @@ def get_list_of_videos():
 def get_frame_from_camera():
     target_file = request.args.get("target")
     frame_idx = int(request.args.get("frame"))
-    frame_base64, max_frames = get_image(target_file, frame_idx)
+    frame_base64, max_frames = get_image_base64(target_file, frame_idx)
     return flask.jsonify(
         {
             "frame": frame_base64,
@@ -71,9 +73,9 @@ def get_annotation_and_frame():
 
     print("Got request for file: ", target_file, " at frame: ", frame_idx)
 
-    frame_base64, max_frames = get_image(target_file, frame_idx)
+    frame_base64, max_frames = get_image_base64(target_file, frame_idx)
     all_annotations: Annotations
-    all_annotations = get_annotation(target_file, max_frames)
+    all_annotations = get_annotations_from_file(target_file, max_frames)
 
     return flask.jsonify(
         {
@@ -97,87 +99,14 @@ def save_annotation():
     return flask.jsonify({"status": "ok"})
 
 
-## UTILS
-
-
-def atoi(text):
-    return int(text) if text.isdigit() else text
-
-
-def natural_keys(text):
-    return [atoi(c) for c in re.split(r"(\d+)", text)]
-
-
-def get_image(video_or_path: str, frame_idx: int | None = None):
-    frame, max_frames = get_frame(video_or_path, frame_idx)
-    _, frame_b64 = convert_to_base64(frame)
-    return frame_b64, max_frames
-
-
-def get_annotation(target: str, max_frames: int) -> Annotations:
-    video = target
-    annotations_file = video.replace(".mp4", "_annotation.pkl")
-    source_data_file = video.replace(".mp4", ".pkl")
-    if not os.path.exists(annotations_file):
-        annotations = [
-            _get_annotation_from_file(source_data_file, i) for i in range(max_frames)
-        ]
-        annotations = Annotations(dst=annotations_file, annotations=annotations)
-    else:
-        with open(annotations_file, "rb") as fp:
-            annotations = Annotations(**pkl.load(fp))
-    # ann = annotations.annotations[frame]
-    return annotations
-
-
-def _get_annotation_from_file(annotations_file: str, frame: int) -> FrameAnnotation:
-    with open(annotations_file, "rb") as fp:
-        annotations = pkl.load(fp)
-        annotations = annotations["session"]
-
-    ### Debug visualization
-    if False:
-        from matplotlib import pyplot as plt
-        plt.figure(figsize=(10, 10))
-        ax = plt.subplot(111, projection="3d")
-        for i in range(len(annotations)):
-            ax.cla()
-            kpts_3d = np.asarray(annotations[i]["skeletons"]["human0"]["positions"])
-            ax.scatter(kpts_3d[:, 0], kpts_3d[:, 1], kpts_3d[:, 2])
-            plt.pause(0.001)
-    ###
-
-    session_dict = annotations[frame]
-    kpts_3d = np.asarray(session_dict["skeletons"]["human0"]["positions"])
-    # kpts_2d = np.zeros((len(kpts_3d), 2), dtype=np.int32) + 100
-    kpts_2d = get_2d_kpts_placeholder()
-    confs = np.zeros(len(kpts_2d), dtype=np.float32) + 1
-
-    ann = FrameAnnotation(
-        dst="<unknown>",
-        visibles=[True] * len(kpts_2d),
-        frame=frame,
-        names_2d=[str(i) for i in range(len(kpts_2d))],
-        confidences_2d=confs.tolist(),
-        joints_2d=kpts_2d.tolist(),
-        links_2d=OPTITRACK_HUMAN_LINKS,
-        format_2d="optitrack",
-        ####
-        names_3d=[str(i) for i in range(len(kpts_3d))],
-        joints_3d=kpts_3d.tolist(),
-        links_3d=OPTITRACK_HUMAN_LINKS,
-        format_3d="optitrack",
-        ####
-    )
-    return ann
-
-
 if __name__ == "__main__":
     import argparse
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--data_folder", type=str, default="./data/spot_povs")
+    parser.add_argument("--dataset", type=str, default="CanDataset")
     args = parser.parse_args()
     DATA_FOLDER = args.data_folder
+    # dataset = eval(args.dataset)(DATA_FOLDER)
 
     app.run(host="0.0.0.0", port=PORT, threaded=False)

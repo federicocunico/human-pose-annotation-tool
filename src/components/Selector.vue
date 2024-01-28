@@ -15,14 +15,16 @@ table.table.table-striped.table-hover
                 //- i.bi.bi-x-circle-fill.red(v-if="!hasSourceData(index)")
                 //- i.bi.bi-check-circle-fill.green
                 div(v-if="!hasSourceData(index)")
-                    | No
+                    i.bi.bi-x-circle-fill.red
                 div(v-else)
-                    | Yes
+                    i.bi.bi-check-circle-fill.green
             td  
                 div(v-if="!hasAnnotation(index)")
-                    | No
+                    i.bi.bi-x-circle-fill.red
+                div(v-else-if="isCompletelyAnnotated(index)")
+                    i.bi.bi-check-circle-fill.green
                 div(v-else)
-                    | Yes
+                    i.bi.bi-check-circle-fill.yellow
             td
                 button.btn.btn-primary(@click="startAnnotating(file)") Annotate  
         tr(v-else)
@@ -78,7 +80,7 @@ function hasSourceData(index: number) {
     if (!filesWithSourceData.value) {
         return false;
     }
-    if(filesWithSourceData.value.length <= index) {
+    if (filesWithSourceData.value.length <= index) {
         return false;
     }
     return filesWithSourceData.value[index];
@@ -88,10 +90,22 @@ function hasAnnotation(index: number) {
     if (!filesWithAnn.value) {
         return false;
     }
-    if(filesWithAnn.value.length <= index) {
+    if (filesWithAnn.value.length <= index) {
         return false;
     }
     return filesWithAnn.value[index];
+}
+
+function isCompletelyAnnotated(index: number) {
+    // if (!filesWithAnn.value) {
+    //     return false;
+    // }
+    // if (filesWithAnn.value.length <= index) {
+    //     return false;
+    // }
+    // return filesWithAnn.value[index];
+
+    return true;
 }
 
 function startAnnotating(file: string) {
@@ -106,10 +120,14 @@ function startAnnotating(file: string) {
 
 <style scoped lang="scss">
 .red {
-	color: red
+    color: red
 }
 
 .green {
-	color: green
+    color: green
+}
+
+.yellow {
+    color: yellow
 }
 </style>
