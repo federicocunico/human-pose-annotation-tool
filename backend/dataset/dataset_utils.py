@@ -1,11 +1,4 @@
-import os
-import pickle as pkl
 import re
-
-import numpy as np
-from backend.defaults import get_2d_kpts_placeholder
-from backend.extra.links import OPTITRACK_HUMAN_LINKS
-from backend.models.annotation import Annotations, FrameAnnotation
 from backend.utility.cv_utils import convert_to_base64, get_frame_np
 
 

@@ -3,18 +3,17 @@ import os
 import pickle as pkl
 import cv2
 import numpy as np
-from backend.dataset.definition import AnnotationDataset
+from backend.dataset.definition import AnnotationDataset, FileList
 from backend.dataset.dataset_utils import natural_keys
-from backend.defaults import get_2d_kpts_placeholder
+from backend.extra.keypoint_definition import get_2d_kpts_placeholder
 from backend.extra.links import OPTITRACK_HUMAN_LINKS
 from backend.models.annotation import Annotations, FrameAnnotation
 from backend.utility.cv_utils import get_frame_np
 
 
 def get_annotations_from_file(target: str, max_frames: int) -> Annotations:
-    video = target
-    annotations_file = video.replace(".mp4", "_annotation.pkl")
-    source_data_file = video.replace(".mp4", ".pkl")
+    annotations_file = target.replace(".mp4", "_annotation.pkl")
+    source_data_file = target.replace(".mp4", ".pkl")
     if not os.path.exists(annotations_file):
         annotations = [
             _get_annotation_from_file(source_data_file, i) for i in range(max_frames)
@@ -87,16 +86,26 @@ class CanDataset(AnnotationDataset):
 
     ## Abstract methods implementations
 
-    def get_files(self) -> list[str]:
-        return self.files
+    def get_files(self) -> FileList:
+        has_annotations = [f.replace(".mp4", "_annotation.pkl") for f in self.files]
+        has_annotations = [os.path.isfile(f) for f in has_annotations]
+
+        has_source_data = [f.replace(".mp4", ".pkl") for f in self.files]
+        has_source_data = [os.path.isfile(f) for f in has_source_data]
+        fl = FileList(
+            files=self.files,
+            has_annotations=has_annotations,
+            has_source_data=has_source_data,
+        )
+        return fl
 
     def get_image(self, file: str, frame_idx: int | None = None) -> np.ndarray:
-        return get_frame_np(file, frame_idx)
+        frame, _ = get_frame_np(file, frame_idx)
+        return frame
 
     def get_all_annotations(self, file: str) -> Annotations:
-        annotation_file = file.replace(".mp4", "_annotation.pkl")
         max_frames = self.get_max_frames(file)
-        annotations = get_annotations_from_file(annotation_file, max_frames)
+        annotations = get_annotations_from_file(file, max_frames)
 
         return annotations
 

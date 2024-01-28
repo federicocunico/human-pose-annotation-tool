@@ -1,18 +1,12 @@
-import re
-import glob
-import os
 import pickle as pkl
 import flask
-from flask import jsonify, request, send_from_directory, render_template_string
+from flask import abort, jsonify, request, send_from_directory, render_template_string
 from flask_cors import CORS
-import numpy as np
-from backend.dataset.can_dataset import get_annotations_from_file
-from backend.dataset.dataset_utils import get_image_base64, natural_keys
-from backend.utility.cv_utils import convert_to_base64, get_frame_np
-from backend.defaults import get_2d_kpts_placeholder
-from backend.extra.links import BODY25_LINKS, OPENPOSE_LINKS, OPTITRACK_HUMAN_LINKS
-from backend.models.annotation import FrameAnnotation, Annotations
+from backend.dataset.can_dataset import CanDataset
 
+from backend.dataset.definition import AnnotationDataset, AnnotationOutput, ImageOutput
+from backend.utility.cv_utils import convert_to_base64
+from backend.models.annotation import Annotations
 
 from cfg import PORT, STATIC_PATH
 
@@ -36,19 +30,8 @@ cors = CORS(app, resources={r"/*": {"origins": "*"}}, send_wildcard=True)
 
 @app.route("/list", methods=["GET"])
 def get_list_of_videos():
-    files = glob.glob(os.path.join(DATA_FOLDER, "*.mp4"))
-    files.sort(key=natural_keys)
-
-    has_annotations = [f.replace(".mp4", "_annotation.pkl") for f in files]
-    has_annotations = [os.path.isfile(f) for f in has_annotations]
-
-    has_source_data = [f.replace(".mp4", ".pkl") for f in files]
-    has_source_data = [os.path.isfile(f) for f in has_source_data]
-    out = {
-        "files": files,
-        "has_annotations": has_annotations,
-        "has_source_data": has_source_data,
-    }
+    all_files = dataset.get_files()
+    out = all_files.model_dump()
     return jsonify(out)
 
 
@@ -56,13 +39,13 @@ def get_list_of_videos():
 def get_frame_from_camera():
     target_file = request.args.get("target")
     frame_idx = int(request.args.get("frame"))
-    frame_base64, max_frames = get_image_base64(target_file, frame_idx)
-    return flask.jsonify(
-        {
-            "frame": frame_base64,
-            "current_frame": frame_idx,
-        }
-    )
+    frame = dataset.get_image(target_file, frame_idx)
+    success, frame_base64 = convert_to_base64(frame)
+    if not success:
+        abort(500, "Failed to convert frame to base64")
+    img = ImageOutput(frame=frame_base64, current_frame=frame_idx)
+    out = img.model_dump()
+    return flask.jsonify(out)
 
 
 @app.route("/annotation", methods=["GET"])
@@ -73,18 +56,19 @@ def get_annotation_and_frame():
 
     print("Got request for file: ", target_file, " at frame: ", frame_idx)
 
-    frame_base64, max_frames = get_image_base64(target_file, frame_idx)
-    all_annotations: Annotations
-    all_annotations = get_annotations_from_file(target_file, max_frames)
+    all_annotations = dataset.get_all_annotations(target_file)
+    frame_np = dataset.get_image(target_file, frame_idx)
+    _, frame_base64 = convert_to_base64(frame_np)
+    max_frames = dataset.get_max_frames(target_file)
 
-    return flask.jsonify(
-        {
-            "frame": frame_base64,
-            "current_frame": frame_idx,
-            "max_frames": max_frames,
-            "annotations": all_annotations.model_dump(),
-        }
+    response = AnnotationOutput(
+        frame=frame_base64,
+        current_frame=frame_idx,
+        max_frames=max_frames,
+        annotations=all_annotations,
     )
+    out = response.model_dump()
+    return flask.jsonify(out)
 
 
 @app.route("/save", methods=["POST"])
@@ -107,6 +91,6 @@ if __name__ == "__main__":
     parser.add_argument("--dataset", type=str, default="CanDataset")
     args = parser.parse_args()
     DATA_FOLDER = args.data_folder
-    # dataset = eval(args.dataset)(DATA_FOLDER)
+    dataset: AnnotationDataset = eval(args.dataset)(DATA_FOLDER)
 
     app.run(host="0.0.0.0", port=PORT, threaded=False)

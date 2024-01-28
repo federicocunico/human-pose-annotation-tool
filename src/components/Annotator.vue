@@ -27,7 +27,7 @@
                         :cx="p.x"
                         :cy="p.y"
                         :r="circleRadius"
-                        fill="blue"
+                        fill="green"
                         @mousedown="enableDrag(p)"
                         @mouseleave="onMouseLeave"
                         @mouseenter="onMousEnter"
@@ -40,7 +40,7 @@
                             font-size="16px"
                             font-weight="bold"
                             text-anchor="middle"
-                            fill="blue"
+                            fill="green"
                             stroke="black"
                             stroke-width="1px"
                             ) {{ (annotation.names_2d[index]) }}

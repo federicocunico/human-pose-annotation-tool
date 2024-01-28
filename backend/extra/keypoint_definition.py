@@ -1,5 +1,6 @@
 import numpy as np
 
+
 PLACEHOLDER_2D_KPTS_OPTITRACK = np.asarray(
     [
         [300, 271],
@@ -38,5 +39,7 @@ def get_2d_kpts_placeholder(num_kpts: int, max_width: int = 640, max_height: int
         return kpts.astype(np.int32)
     else:
         raise NotImplementedError(
-            f"Unable to create a skeleton for this number of keypoints: {num_kpts}"
+            f"Unable to create a skeleton for this number of keypoints: {num_kpts} (unsupported)"
         )
+
+# ###############
