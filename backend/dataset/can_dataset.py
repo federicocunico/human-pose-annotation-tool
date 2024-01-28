@@ -30,9 +30,19 @@ def get_annotations_from_file(target: str, max_frames: int) -> Annotations:
 
 
 def _get_annotation_from_file(annotations_file: str, frame: int) -> FrameAnnotation:
-    with open(annotations_file, "rb") as fp:
-        annotations = pkl.load(fp)
-        annotations = annotations["session"]
+    if os.path.isfile(annotations_file):
+        with open(annotations_file, "rb") as fp:
+            annotations = pkl.load(fp)
+            annotations = annotations["session"]
+        session_dict = annotations[frame]
+        kpts_3d = np.asarray(session_dict["skeletons"]["human0"]["positions"])
+        n_kpts = len(kpts_3d)
+        kpts_2d = get_2d_kpts_placeholder(n_kpts)
+        confs = np.zeros(len(kpts_2d), dtype=np.float32) + 1
+    else:
+        kpts_3d = np.asarray([], dtype=np.float32)  # empty
+        kpts_2d = get_2d_kpts_placeholder(21)
+        confs = np.zeros(len(kpts_2d), dtype=np.float32) + 1
 
     ### Debug visualization
     if False:
@@ -46,12 +56,6 @@ def _get_annotation_from_file(annotations_file: str, frame: int) -> FrameAnnotat
             ax.scatter(kpts_3d[:, 0], kpts_3d[:, 1], kpts_3d[:, 2])
             plt.pause(0.001)
     ###
-
-    session_dict = annotations[frame]
-    kpts_3d = np.asarray(session_dict["skeletons"]["human0"]["positions"])
-    n_kpts = len(kpts_3d)
-    kpts_2d = get_2d_kpts_placeholder(n_kpts)
-    confs = np.zeros(len(kpts_2d), dtype=np.float32) + 1
 
     ann = FrameAnnotation(
         dst="<unknown>",

@@ -226,6 +226,12 @@ function onOptions(e: MouseEvent, idx: number) {
         y: e.y,
         items: [
             {
+                label: "Joint: " + props.annotation.names_2d[idx],
+                divided: true,
+                disabled: true
+            },
+
+            {
                 label: "Hide",
                 onClick: () => {
                     props.annotation.joints_2d[idx].visible = false;

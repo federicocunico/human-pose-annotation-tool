@@ -8,28 +8,54 @@ h3 Frame: {{ frame }} of {{ max_frames }}
     .col.lg-6
         .btn-group
             button.btn.btn-primary(@click="prevFrame" :disabled="frame <= 0") Previous
-            button.btn.btn-primary(@click="resetVisibility") Reset Visibility
+            button.btn.btn-secondary(@click="resetVisibility") Reset Visibility
+            //- make a dropdown with all joints2d visibility checkboxes
+            template(v-if="annotation")
+                .btn-group
+                    button.btn.btn-success.dropdown-toggle(type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false") Joint Visibility
+                    ul.dropdown-menu
+                        li(v-for="(pt, index) in annotation.joints_2d" :key="index" href="")
+                            div.dropdown-item(
+                                :class="pt.visible?'joint-visilbe' : 'joint-hidden'"
+                                @click="setVisibility($event, index)")
+                                | {{ annotation.names_2d[index] }} : {{ getVisibleText(pt) }}
+
             button.btn.btn-primary(@click="nextFrame" :disabled="frame >= max_frames") Next
     .col-lg-3
 .row
     input(type="range" class="form-range" min="0" :max="max_frames" v-model="frame" step="1")
 
-.row(v-if="file")
+.row(v-if="file && annotation")
     .col(v-if="has3dData")
         h4 3D Data
-        Plot3D(v-if="annotation" :annotation="annotation")
+        Plot3D(:annotation="annotation")
     .col
         h4 2D Data
-        AnnotatorVue(
-            v-if="currentFrame && annotation"
-            :image="currentFrame"
-            :annotation="annotation"
-            @data-updated="saveAnnotation"
-        )
+        template(v-if="currentFrame")
+            AnnotatorVue(
+                :image="currentFrame"
+                :annotation="annotation"
+                @data-updated="saveAnnotation"
+            )
+        template(v-else)
+            h4 No frame found
+.row(v-else)
+    .col
+        h4 No data to show (either no 2D or 3D data).
+        h4 Current file: {{ file }} 
+        h4 Annotation present? {{ annotation != null }}
 
-div.row
-    | Selected: {{ annotation?.selectedPoint }}
+//- debug
+//- div.row
+//-     | Selected: {{ annotation?.selectedPoint }}
 </template>
+
+
+
+
+
+
+  
 
 <script setup lang="ts">
 import AnnotatorVue from './Annotator.vue';
@@ -42,6 +68,7 @@ import axios from 'axios';
 import { ImageBase64 } from "@/data_structures/Image";
 import { FrameAnnotation, Annotations } from '@/data_structures/Annotation';
 import { useLoading } from 'vue3-loading-overlay';
+import type { Point2D } from '@/data_structures/Point';
 
 let loader = useLoading();
 const route = useRoute();
@@ -161,7 +188,31 @@ function getFileName(file: string | undefined) {
     return last?.split(".")[0] ?? "<unknown>";
 }
 
+function setVisibility(event: MouseEvent, index: number) {
+    event.preventDefault();
+    if (annotations.value == null) {
+        return;
+    }
+    if (annotation.value === undefined) {
+        return;
+    }
+    let pt = annotation.value?.joints_2d[index];
+    annotation.value.joints_2d[index].visible = !pt.visible;
+}
+
+function getVisibleText(pt: Point2D) {
+    if (pt.visible) {
+        return "visible";
+    }
+    return "hidden";
+}
+
 function resetVisibility() {
+    let answer = confirm("Are you sure you want to reset visibility?");
+    if (!answer) {
+        return;
+    }
+
     if (!annotations.value) {
         return;
     }
@@ -176,3 +227,17 @@ const has3dData = computed(() => {
 })
 
 </script>
+
+<style scoped lang="scss">
+.joint-visilbe {
+    color: green;
+    // text bold
+    font-weight: bold;
+}
+
+.joint-hidden {
+    color: red;
+    // text bold
+    font-weight: bold;
+}
+</style>
