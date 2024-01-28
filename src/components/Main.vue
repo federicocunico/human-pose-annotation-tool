@@ -8,6 +8,7 @@ h3 Frame: {{ frame }} of {{ max_frames }}
     .col.lg-6
         .btn-group
             button.btn.btn-primary(@click="prevFrame" :disabled="frame <= 0") Previous
+            button.btn.btn-secondary(@click="resetLocations") Reset Locations
             button.btn.btn-secondary(@click="resetVisibility") Reset Visibility
             //- make a dropdown with all joints2d visibility checkboxes
             template(v-if="annotation")
@@ -217,6 +218,19 @@ function resetVisibility() {
         return;
     }
     annotation.value?.resetVisibility();
+}
+
+
+function resetLocations(){
+    let answer = confirm("Are you sure you want to reset locations? This action is NOT reversable");
+    if (!answer) {
+        return;
+    }
+
+    if (!annotations.value) {
+        return;
+    }
+    annotation.value?.resetLocations();
 }
 
 const has3dData = computed(() => {

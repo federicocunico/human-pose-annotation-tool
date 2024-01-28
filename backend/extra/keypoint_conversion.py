@@ -2,12 +2,12 @@ import numpy as np
 
 
 def mapping_keypoints(
-    format_from: str, kpts: np.ndarray, format_to: str = "optitrack"
+    format_from: str, keypoints: np.ndarray, format_to: str = "optitrack"
 ) -> np.ndarray:
     if format_from == "coco" and format_to == "optitrack":
-        return _map_coco_to_optitrack(kpts)
+        return _map_coco_to_optitrack(keypoints)
     elif format_from == "openpose" and format_to == "optitrack":
-        return _map_openpose_to_optitrack(kpts)
+        return _map_openpose_to_optitrack(keypoints)
     else:
         raise NotImplementedError(
             f"Mapping from {format_from} to {format_to} not implemented"
@@ -15,11 +15,28 @@ def mapping_keypoints(
 
 
 def mean_pt(pt1: np.ndarray, pt2: np.ndarray) -> np.ndarray:
-    return (pt1 + pt2) / 2
+    is_pt1_zero = np.allclose(pt1, np.zeros_like(pt1))
+    is_pt2_zero = np.allclose(pt2, np.zeros_like(pt2))
+    if is_pt1_zero and not is_pt2_zero:
+        return pt2
+    if is_pt2_zero and not is_pt1_zero:
+        return pt1
+
+    mean_pt = np.mean([pt1, pt2], axis=0)
+
+    if False:
+        from matplotlib import pyplot as plt
+
+        plt.figure(figsize=(5, 5))
+        plt.scatter(pt1[0], pt1[1], c="r")
+        plt.scatter(pt2[0], pt2[1], c="g")
+        plt.scatter(mean_pt[0], mean_pt[1], c="b")
+        plt.pause(0.001)
+    return mean_pt
 
 
 def _map_openpose_to_optitrack(openpose_kpts: np.ndarray) -> np.ndarray:
-    # Openpose keypoints are in the following order:
+    # Openpose (BODY_25) keypoints are in the following order:
     # 0: nose
     # 1: neck
     # 2: right shoulder
@@ -39,6 +56,12 @@ def _map_openpose_to_optitrack(openpose_kpts: np.ndarray) -> np.ndarray:
     # 16: left eye
     # 17: right ear
     # 18: left ear
+    # 19: left big toe
+    # 20: left small toe
+    # 21: left heel
+    # 22: right big toe
+    # 23: right small toe
+    # 24: right heel
 
     # Optitrack keypoints are in the following order (names not official):
     # 0: hip center
@@ -80,11 +103,11 @@ def _map_openpose_to_optitrack(openpose_kpts: np.ndarray) -> np.ndarray:
     ot_left_hip = openpose_kpts[12]  # left hip
     ot_left_knee = openpose_kpts[13]  # left knee
     ot_left_ankle = openpose_kpts[14]  # left ankle
-    ot_left_feet = ot_left_ankle  # left feet (same as left ankle)
+    ot_left_feet = mean_pt(openpose_kpts[19], openpose_kpts[20])  # left feet
     ot_right_hip = openpose_kpts[9]  # right hip
     ot_right_knee = openpose_kpts[10]  # right knee
     ot_right_ankle = openpose_kpts[11]  # right ankle
-    ot_right_feet = ot_right_ankle  # right feet (same as right ankle)
+    ot_right_feet = mean_pt(openpose_kpts[22], openpose_kpts[23])  # right feet
 
     optitrack_kpts = np.asarray(
         [

@@ -21,6 +21,17 @@
                     "PYTHONPATH": "${workspaceFolder}"
                 },
                 "cwd": "${workspaceFolder}"
+            },
+            {
+                "name": "Current file",
+                "type": "python",
+                "request": "launch",
+                "program": "${file}",
+                "console": "integratedTerminal",
+                "cwd": "${workspaceFolder}",
+                "env": {
+                    "PYTHONPATH": "${workspaceFolder}"
+                },
             }
         ],
     },

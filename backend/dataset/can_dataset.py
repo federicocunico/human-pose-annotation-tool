@@ -28,8 +28,16 @@ def get_annotations_from_file(target: str, max_frames: int) -> Annotations:
     return annotations
 
 
+def empty_source_data(source_data_file: str) -> bool:
+    if not os.path.isfile(source_data_file):
+        return True
+    with open(source_data_file, "rb") as fp:
+        annotations = pkl.load(fp)
+    return len(annotations) == 0
+
+
 def _get_annotation_from_file(annotations_file: str, frame: int) -> FrameAnnotation:
-    if os.path.isfile(annotations_file):
+    if not empty_source_data(annotations_file):
         with open(annotations_file, "rb") as fp:
             annotations = pkl.load(fp)
             annotations = annotations["session"]

@@ -1,4 +1,4 @@
-import numpy as np
+import pickle as pkl
 from ..pydantic_ext import BaseModel
 
 
@@ -22,3 +22,7 @@ class Annotations(BaseModel):
     dst: str
     # placeholder_kpts: list[list[int]] = []
     annotations: list[FrameAnnotation]
+
+    def save(self) -> None:
+        with open(self.dst, "wb") as fp:
+            pkl.dump(self.model_dump(), fp)

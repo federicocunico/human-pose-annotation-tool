@@ -106,6 +106,16 @@ export class FrameAnnotation {
         return this.joints_3d.length > 0;
     }
 
+    resetLocations() {
+        // foreach with index
+        this.joints_2d.forEach((joint, index) => {
+            joint.x = 30 + (30 * index);
+            joint.y = 150;
+            joint.visible = true;
+            this.visibles[index] = true;
+        });
+    }
+
     toJSON() {
         let joints2d = [];
         for (let i = 0; i < this.joints_2d.length; i++) {
