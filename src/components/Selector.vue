@@ -36,7 +36,7 @@ import router from '@/router';
 import { defualtUriBuilder } from '@/uri';
 import axios from 'axios';
 import { onMounted, ref } from 'vue';
-import { useLoading } from 'vue3-loading-overlay';
+import { useLoading } from 'vue-loading-overlay';
 
 let loader = useLoading();
 
@@ -49,9 +49,9 @@ onMounted(() => {
 })
 
 async function getFiles() {
-    loader.show({
-        // Optional parameters
-        container: null, // fullpage
+    const _loader = loader.show({
+        // // Optional parameters
+        // container: null, // fullpage
         canCancel: false,
         // onCancel: onCancel,
     });
@@ -66,7 +66,7 @@ async function getFiles() {
     filesToAnnotate.value = serverFiles;
     filesWithSourceData.value = _filesWithSourceData;
     filesWithAnn.value = _filesWithAnn;
-    loader.hide();
+    _loader.hide();
 }
 
 function getFileName(file: string) {

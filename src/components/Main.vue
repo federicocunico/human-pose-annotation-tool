@@ -68,7 +68,7 @@ import { UriBuilder } from '@/uri';
 import axios from 'axios';
 import { ImageBase64 } from "@/data_structures/Image";
 import { FrameAnnotation, Annotations } from '@/data_structures/Annotation';
-import { useLoading } from 'vue3-loading-overlay';
+import { useLoading } from 'vue-loading-overlay';
 import type { Point2D } from '@/data_structures/Point';
 
 let loader = useLoading();
@@ -88,9 +88,9 @@ onMounted(() => {
 })
 
 async function get_annotation_data() {
-    loader.show({
+    const _loader = loader.show({
         // Optional parameters
-        container: null, // fullpage
+        // container: null, // fullpage
         canCancel: false,
         // onCancel: onCancel,
     });
@@ -115,7 +115,7 @@ async function get_annotation_data() {
     currentFrame.value = img;
     annotation.value = ann;
 
-    loader.hide();
+    _loader.hide();
 }
 
 function nextFrame() {
@@ -221,7 +221,7 @@ function resetVisibility() {
 }
 
 
-function resetLocations(){
+function resetLocations() {
     let answer = confirm("Are you sure you want to reset locations? This action is NOT reversable");
     if (!answer) {
         return;

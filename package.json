@@ -25,8 +25,8 @@
     "socket.io-client": "^4.7.2",
     "three": "^0.159.0",
     "vue": "^3.3.10",
+    "vue-loading-overlay": "^6.0.3",
     "vue-router": "^4.2.5",
-    "vue3-loading-overlay": "^0.0.0",
     "vuex": "^4.1.0"
   },
   "devDependencies": {

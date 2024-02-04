@@ -9,12 +9,12 @@ import 'bootstrap-icons/font/bootstrap-icons.css'
 import '@imengyu/vue3-context-menu/lib/vue3-context-menu.css'
 import ContextMenu from '@imengyu/vue3-context-menu'
 
-import 'vue3-loading-overlay/dist/vue3-loading-overlay.css';
-import { useLoading } from 'vue3-loading-overlay';
+import { LoadingPlugin } from 'vue-loading-overlay';
+import 'vue-loading-overlay/dist/css/index.css';
 
 const app = createApp(App)
 app.use(router)
 app.use(ContextMenu)
-app.use(useLoading)
+app.use(LoadingPlugin)
 app.use(createPinia())
 app.mount('#app')
