@@ -3,14 +3,17 @@ from abc import ABC, abstractmethod
 import numpy as np
 
 from backend.models.annotation import Annotations
+from backend.models.conf import Config
 from backend.pydantic_ext import BaseModel
 
 
 class AnnotationDataset(ABC):
     data_root: str
+    config: Config
 
-    def __init__(self, data_root: str) -> None:
+    def __init__(self, data_root, config: Config = None) -> None:
         self.data_root = data_root
+        self.config = config
 
     @abstractmethod
     def get_image(self, file: str, frame_idx: int | None = None) -> np.ndarray:

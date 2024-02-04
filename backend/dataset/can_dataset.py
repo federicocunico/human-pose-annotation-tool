@@ -3,11 +3,12 @@ import os
 import pickle as pkl
 import cv2
 import numpy as np
-from backend.dataset.definition import AnnotationDataset, FileList
+from backend.dataset import AnnotationDataset, FileList
 from backend.dataset.dataset_utils import natural_keys
 from backend.extra.keypoint_definition import get_2d_kpts_placeholder
 from backend.extra.links import OPTITRACK_HUMAN_LINKS
 from backend.models.annotation import Annotations, FrameAnnotation
+from backend.models.conf import Config
 from backend.utility.cv_utils import get_frame_np
 
 
@@ -87,8 +88,8 @@ class CanDataset(AnnotationDataset):
     data_root: str  # from AnnotationDataset
     files: list[str]
 
-    def __init__(self, root_folder: str) -> None:
-        super().__init__(root_folder)
+    def __init__(self, root_folder: str, config: Config) -> None:
+        super().__init__(root_folder, config)
         self.files = glob.glob(os.path.join(root_folder, "*.mp4"))
         self.files.sort(key=natural_keys)
 

@@ -2,13 +2,12 @@ import pickle as pkl
 import flask
 from flask import abort, jsonify, request, send_from_directory, render_template_string
 from flask_cors import CORS
-from backend.dataset.can_dataset import CanDataset
-
-from backend.dataset.definition import AnnotationDataset, AnnotationOutput, ImageOutput
+from backend.dataset import AnnotationDataset, AnnotationOutput, ImageOutput
+from backend.models.conf import Config
 from backend.utility.cv_utils import convert_to_base64
 from backend.models.annotation import Annotations
 
-from cfg import PORT, STATIC_PATH
+from cfg import PORT, STATIC_PATH, get_config
 
 app = flask.Flask(__name__, static_folder=STATIC_PATH, static_url_path="")
 cors = CORS(app, resources={r"/*": {"origins": "*"}}, send_wildcard=True)
@@ -87,10 +86,12 @@ if __name__ == "__main__":
     import argparse
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("--data_folder", type=str, default="./data/spot_povs")
-    parser.add_argument("--dataset", type=str, default="CanDataset")
+    parser.add_argument(
+        "--config", type=str, default="./backend/configs/optitrack.yaml"
+    )
     args = parser.parse_args()
-    DATA_FOLDER = args.data_folder
-    dataset: AnnotationDataset = eval(args.dataset)(DATA_FOLDER)
+    config_file: str = args.config
+    config: Config = get_config(config_file)
+    dataset: AnnotationDataset = config.load_dataset()
 
     app.run(host="0.0.0.0", port=PORT, threaded=False)
