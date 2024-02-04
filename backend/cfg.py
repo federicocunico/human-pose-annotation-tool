@@ -2,10 +2,12 @@ import os
 import yaml
 from models.conf import Config as _Config
 
-CURRENT_FOLDER = os.path.dirname(os.path.abspath(__file__))
-STATIC_PATH = os.path.join(CURRENT_FOLDER, "dist")
 
+### Constants
+CURRENT_FOLDER = os.path.dirname(os.path.abspath(__file__))
+STATIC_PATH = os.path.realpath(os.path.join(CURRENT_FOLDER, "dist"))
 PORT = 51100
+###
 
 
 def get_config(conf_file: str):

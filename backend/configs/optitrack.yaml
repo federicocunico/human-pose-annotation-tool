@@ -1,5 +1,5 @@
 name: "Optitrack"
-data_root: "./data/can"
+data_root: "./data/spot_povs"
 dataloader_script: "./backend/dataset/can_dataset.py"
 dataloader_class: "CanDataset"
 

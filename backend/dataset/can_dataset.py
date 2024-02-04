@@ -6,18 +6,20 @@ import numpy as np
 from backend.dataset import AnnotationDataset, FileList
 from backend.dataset.dataset_utils import natural_keys
 from backend.extra.keypoint_definition import get_2d_kpts_placeholder
-from backend.extra.links import OPTITRACK_HUMAN_LINKS
 from backend.models.annotation import Annotations, FrameAnnotation
 from backend.models.conf import Config
 from backend.utility.cv_utils import get_frame_np
 
 
-def get_annotations_from_file(target: str, max_frames: int) -> Annotations:
+def get_annotations_from_file(
+    conf: Config, target: str, max_frames: int
+) -> Annotations:
     annotations_file = target.replace(".mp4", "_annotation.pkl")
     source_data_file = target.replace(".mp4", ".pkl")
     if not os.path.exists(annotations_file):
         annotations = [
-            _get_annotation_from_file(source_data_file, i) for i in range(max_frames)
+            _get_annotation_from_file(conf, source_data_file, i)
+            for i in range(max_frames)
         ]
         annotations = Annotations(
             dst=annotations_file,
@@ -29,7 +31,7 @@ def get_annotations_from_file(target: str, max_frames: int) -> Annotations:
     return annotations
 
 
-def empty_source_data(source_data_file: str) -> bool:
+def is_source_data_empty(source_data_file: str) -> bool:
     if not os.path.isfile(source_data_file):
         return True
     with open(source_data_file, "rb") as fp:
@@ -37,8 +39,10 @@ def empty_source_data(source_data_file: str) -> bool:
     return len(annotations) == 0
 
 
-def _get_annotation_from_file(annotations_file: str, frame: int) -> FrameAnnotation:
-    if not empty_source_data(annotations_file):
+def _get_annotation_from_file(
+    config: Config, annotations_file: str, frame: int
+) -> FrameAnnotation:
+    if not is_source_data_empty(annotations_file):
         with open(annotations_file, "rb") as fp:
             annotations = pkl.load(fp)
             annotations = annotations["session"]
@@ -49,7 +53,7 @@ def _get_annotation_from_file(annotations_file: str, frame: int) -> FrameAnnotat
         confs = np.zeros(len(kpts_2d), dtype=np.float32) + 1
     else:
         kpts_3d = np.asarray([], dtype=np.float32)  # empty
-        kpts_2d = get_2d_kpts_placeholder(21)
+        kpts_2d = get_2d_kpts_placeholder(config.joints_number)
         confs = np.zeros(len(kpts_2d), dtype=np.float32) + 1
 
     ### Debug visualization
@@ -72,12 +76,12 @@ def _get_annotation_from_file(annotations_file: str, frame: int) -> FrameAnnotat
         names_2d=[str(i) for i in range(len(kpts_2d))],
         confidences_2d=confs.tolist(),
         joints_2d=kpts_2d.tolist(),
-        links_2d=OPTITRACK_HUMAN_LINKS,
+        links_2d=config.joints_links,
         format_2d="optitrack",
         ####
         names_3d=[str(i) for i in range(len(kpts_3d))],
         joints_3d=kpts_3d.tolist(),
-        links_3d=OPTITRACK_HUMAN_LINKS,
+        links_3d=config.joints_links,
         format_3d="optitrack",
         ####
     )
@@ -114,12 +118,12 @@ class CanDataset(AnnotationDataset):
 
     def get_all_annotations(self, file: str) -> Annotations:
         max_frames = self.get_max_frames(file)
-        annotations = get_annotations_from_file(file, max_frames)
+        annotations = get_annotations_from_file(self.config, file, max_frames)
 
         return annotations
 
     def get_links(self) -> list[list[int]]:
-        return OPTITRACK_HUMAN_LINKS
+        return self.config.joints_links
 
     ## Utils methods
 

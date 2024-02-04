@@ -1,3 +1,4 @@
+import os
 import pickle as pkl
 import flask
 from flask import abort, jsonify, request, send_from_directory, render_template_string
@@ -14,17 +15,18 @@ cors = CORS(app, resources={r"/*": {"origins": "*"}}, send_wildcard=True)
 # app.config['CORS_HEADERS'] = 'Content-Type'
 
 
-# ### Global variables
-# @app.route("/", methods=["GET"])
-# def index() -> flask.Response:
-#     # send html file in static folder
-#     fname = "index.html"
-#     html_local_file = os.path.join(STATIC_PATH, fname)
-#     assert os.path.exists(html_local_file), f"File {html_local_file} does not exist"
-#     # return send_from_directory(STATIC_PATH, fname)
-#     with open(html_local_file, "r") as fp:
-#         html_str = "".join(fp.readlines())
-#     return render_template_string(html_str, remote_port=PORT)
+@app.route("/", methods=["GET"])
+def index() -> flask.Response:
+    # send html file in static folder
+    fname = "index.html"
+    html_local_file = os.path.join(STATIC_PATH, fname)
+    assert os.path.exists(
+        html_local_file
+    ), f"File {html_local_file} does not exist. Did you run `npm run build`?"
+
+    with open(html_local_file, "r") as fp:
+        html_str = "".join(fp.readlines())
+    return render_template_string(html_str, remote_port=PORT)
 
 
 @app.route("/list", methods=["GET"])
