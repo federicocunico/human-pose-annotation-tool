@@ -129,6 +129,6 @@ class CanDataset(AnnotationDataset):
 
     def get_max_frames(self, file: str) -> int:
         cap = cv2.VideoCapture(file)
-        max_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+        max_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT)) - 1
         cap.release()
         return max_frames

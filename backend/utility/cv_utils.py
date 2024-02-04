@@ -16,7 +16,8 @@ def get_frame_np(video_or_path: str, frame_idx: int = 0) -> np.ndarray:
             cap.release()
         except Exception as e:
             frame = cv2.imread(video_or_path)
-        return cv2.cvtColor(frame, cv2.COLOR_BGR2RGB), num_frames
+        # return cv2.cvtColor(frame, cv2.COLOR_BGR2RGB), num_frames
+        return frame, num_frames
     raise NotImplementedError(f"URI {video_or_path} not supported")
 
 

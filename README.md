@@ -1,4 +1,29 @@
 # Human pose annotation tool
+Annotation tool for 2D and 3D pose estimation. The tool is designed to work with custom datasets and supports both 2D and 3D annotations. The tool is built with the idea in mind of having a simple and easy-to-use interface for annotating images and videos for human pose estimation problems.
+
+With this tool, the following features are supported:
+- 2D human pose annotation on images or videos;
+- Support for hidden joints;
+- 3D human pose visualization;
+- Custom dataset support;
+
+<!-- Insert example image with description -->
+## Annotation example
+For instance, if the 3D data is provided, the tool will display the 3D pose of the person in the image. If the 3D data is not provided, the tool will still work and allow the user to annotate the 2D pose of the person in the image.
+![Annotation example image](examples/annotation_example.png)
+
+Also, in the case of 3D data provided, when moving a 2D joint, its corresponding 3D joint is highlighted in the 3D visualization. This feature is useful to check if the annotation and 3D data are correct.
+![Joint highlighting example image](examples/annotation_joint_selection.png)
+
+### Hidden joints
+
+The tool supports the hidden joints annotation. It is possible to mark individual joints as hidden. They will not be displayed in the 2D visualization, but they will be saved in the annotation file with a special flag. This feature is useful when the joints are occluded by other objects or people, or they are outside the camera's view frustum.
+
+![Hidden joints example image 1](examples/joint_visibility_general.png)
+
+
+![Hidden joints example image 2](examples/joint_visibility_specific.png)
+
 
 ## Requirements
 1. Install [Node.js](https://nodejs.org/en/download/). If you want you can use `nvm` to manage multiple versions of Node.js. The project has been tested with **Node.js v21**, and **npm version 10.**
