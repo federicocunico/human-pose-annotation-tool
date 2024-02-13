@@ -18,9 +18,9 @@ def equal(a: np.ndarray, b: np.ndarray):
 def main(dataset: AnnotationDataset, check_placeholder: bool = True):
     files_list: FileList = dataset.get_files()
 
-    all_files: list[str] = files_list.files
-    has_annotations: list[bool] = files_list.has_annotations
-    has_source_data: list[bool] = files_list.has_source_data
+    all_files: List[str] = files_list.files
+    has_annotations: List[bool] = files_list.has_annotations
+    has_source_data: List[bool] = files_list.has_source_data
 
     for file, has_annotation, has_source_data in zip(
         all_files, has_annotations, has_source_data

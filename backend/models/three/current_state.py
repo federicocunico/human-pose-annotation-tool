@@ -9,8 +9,8 @@ from ..pydantic_ext import BaseModel
 
 class CurrentState(BaseModel):
     title: str | None = None
-    points: list[Point] = []
-    skeletons: list[Skeleton] = []
+    points: List[Point] = []
+    skeletons: List[Skeleton] = []
 
     ### Clear function
     def clear(self):

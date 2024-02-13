@@ -1,0 +1,46 @@
+name: "OptitrackRaw"
+data_root: "./data/can1"
+dataloader_script: "./backend/dataset/optitrack_raw_dataset.py"
+dataloader_class: "OptitrackRawDataset"
+
+joints_number: 37  # matches the number of joints in the skeleton both 3D and 2D
+joints_links: [
+    [0, 2],  # WaistLFront to WaistLBack
+    [1, 3],  # Waist RFront to WaistRBack
+    [0, 4],  # WaistLFront to Chest
+    [1, 4],  # WaistRFront to Chest
+    [4, 5],  # Chest to BackTop
+    [5, 8],  # BackTop to HeadTop
+    [4, 6],  # Chest to BackLeft
+    [4, 7],  # Chest to BackRight
+    [8, 9],  # HeadTop to HeadFront
+    [8, 10],  # HeadTop to HeadSide
+    [4, 11],  # Chest to LShoulderTop
+    [11, 12],  # LShoulderTop to LShoulderBack
+    [11, 13],  # LShoulderTop to LElbowOut
+    [13, 14],  # LElbowOut to LUArmHigh
+    [14, 16],  # LUArmHigh to LWristOut
+    [16, 15],  # LWristOut to LHandOut
+    [16, 17],  # LWristOut to LWristIn
+    [4, 18],  # Chest to RShoulderTop
+    [18, 19],  # RShoulderTop to RShoulderBack
+    [18, 20],  # RShoulderTop to RElbowOut
+    [20, 21],  # RElbowOut to RUArmHigh
+    [21, 23],  # RUArmHigh to RWristOut
+    [23, 22],  # RWristOut to RHandOut
+    [23, 24],  # RWristOut to RWristIn
+    [0, 25],  # WaistLFront to LThigh
+    [25, 26],  # LThigh to LKneeOut
+    [26, 27],  # LKneeOut to LShin
+    [27, 28],  # LShin to LAnkleOut
+    [28, 29],  # LAnkleOut to LToeOut
+    [29, 30],  # LToeOut to LToeIn
+    [1, 31],  # WaistRFront to RThigh
+    [31, 32],  # RThigh to RKneeOut
+    [32, 33],  # RKneeOut to RShin
+    [33, 34],  # RShin to RAnkleOut
+    [34, 35],  # RAnkleOut to RToeOut
+    [35, 36],  # RToeOut to RToeIn
+]
+joints_names: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36]
+# joints_colors: []   # to be added later

@@ -1,6 +1,7 @@
 import glob
 import os
 import pickle as pkl
+from typing import List
 import cv2
 import numpy as np
 from backend.dataset import AnnotationDataset, FileList
@@ -70,7 +71,7 @@ def _get_annotation_from_file(
     ###
 
     ann = FrameAnnotation(
-        dst="<unknown>",
+        num_joints=config.joints_number,
         visibles=[True] * len(kpts_2d),
         frame=frame,
         names_2d=[str(i) for i in range(len(kpts_2d))],
@@ -90,7 +91,7 @@ def _get_annotation_from_file(
 
 class CanDataset(AnnotationDataset):
     data_root: str  # from AnnotationDataset
-    files: list[str]
+    files: List[str]
 
     def __init__(self, root_folder: str, config: Config) -> None:
         super().__init__(root_folder, config)
@@ -122,7 +123,7 @@ class CanDataset(AnnotationDataset):
 
         return annotations
 
-    def get_links(self) -> list[list[int]]:
+    def get_links(self) -> List[List[int]]:
         return self.config.joints_links
 
     ## Utils methods

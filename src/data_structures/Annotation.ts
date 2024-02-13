@@ -38,6 +38,7 @@ export class Annotations {
 export class FrameAnnotation {
     frame: number = null as unknown as number; // frame number
 
+    num_joints: number = null as unknown as number; // number of joints
     // note: the following variable is only used for serialization; the actual visibility is stored in the joints_2d Point2D objects
     visibles: Array<boolean> = null as unknown as Array<boolean>; // whether the frame is visible or not (e.g. for occluded frames)
 
@@ -56,6 +57,7 @@ export class FrameAnnotation {
 
     constructor(
         frame: number,
+        num_joints: number,
         visibles: Array<boolean>,
 
         names_2d: Array<string>,
@@ -69,6 +71,7 @@ export class FrameAnnotation {
         format_3d: string
     ) {
         this.frame = frame;
+        this.num_joints = num_joints;
         this.visibles = visibles;
 
         this.names_2d = names_2d;
@@ -147,6 +150,7 @@ export class FrameAnnotation {
 
         return {
             frame: this.frame,
+            num_joints: this.num_joints,
             visibles: inferredVisibles,
             names_2d: this.names_2d,
             joints_2d: joints2d,
@@ -184,6 +188,7 @@ export class FrameAnnotation {
 
         return new FrameAnnotation(
             json.frame,
+            json.num_joints,
             json.visibles,
             json.names_2d,
             joints2d,

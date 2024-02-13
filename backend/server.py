@@ -1,11 +1,12 @@
 import os
 import pickle as pkl
+import cv2
 import flask
 from flask import abort, jsonify, request, send_from_directory, render_template_string
 from flask_cors import CORS
 from backend.dataset import AnnotationDataset, AnnotationOutput, ImageOutput
 from backend.models.conf import Config
-from backend.utility.cv_utils import convert_to_base64
+from backend.utility.cv_utils import convert_from_base64, convert_to_base64
 from backend.models.annotation import Annotations
 
 from cfg import PORT, STATIC_PATH, get_config
@@ -84,12 +85,32 @@ def save_annotation():
     return flask.jsonify({"status": "ok"})
 
 
+@app.route("/image_processing", methods=["POST"])
+def image_processing():
+    data = request.json
+    b64_frame = data["frame"]
+
+    # Convert to numpy
+    frame_np = convert_from_base64(b64_frame)
+
+    ## PROCESSING
+    frame_np = cv2.cvtColor(frame_np, cv2.COLOR_BGR2GRAY)
+    frame_np = cv2.equalizeHist(frame_np)
+    # apply jet colormap
+    frame_np = cv2.applyColorMap(frame_np, cv2.COLORMAP_JET)
+
+    # Convert back to base64
+    success, frame_base64 = convert_to_base64(frame_np)
+
+    return jsonify({"frame": frame_base64, "success": success})
+
+
 if __name__ == "__main__":
     import argparse
 
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--config", type=str, default="./backend/configs/optitrack.yaml"
+        "--config", type=str, default="./backend/configs/optitrack_raw.yaml"
     )
     args = parser.parse_args()
     config_file: str = args.config

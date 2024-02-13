@@ -28,6 +28,12 @@ def convert_to_base64(image: np.ndarray):
     enc = base64.b64encode(buffer).decode("utf-8")
     return succ, enc
 
+def convert_from_base64(image_base64: str):
+    dec = base64.b64decode(image_base64)
+    arr = np.frombuffer(dec, np.uint8)
+    img = cv2.imdecode(arr, cv2.IMREAD_COLOR)
+    return img
+
 
 # def get_frame(camera_uri: str):
 #     if camera_uri is None:

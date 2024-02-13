@@ -26,7 +26,8 @@ table.table.table-striped.table-hover
                 div(v-else)
                     i.bi.bi-check-circle-fill.yellow
             td
-                button.btn.btn-primary(@click="startAnnotating(file)") Annotate  
+                button.btn.btn-primary(@click="startAnnotating(file)") Annotate Pose
+                button.btn.btn-secondary(@click="startJointAnnotating(file)") Annotate Single Joints 
         tr(v-else)
             td(colspan="4") No files to annotate
 </template>
@@ -112,6 +113,13 @@ function startAnnotating(file: string) {
     let cam = encodeURIComponent(file);
     let idx = 0;
     let route = `/annotate/?target=${cam}&frame=${idx}`;
+    router.push(route);
+}
+
+function startJointAnnotating(file: string) {
+    let cam = encodeURIComponent(file);
+    let idx = 0;
+    let route = `/annotate-joints/?target=${cam}&frame=${idx}`;
     router.push(route);
 }
 

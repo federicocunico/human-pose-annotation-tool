@@ -2,11 +2,13 @@ export class Point2D {
     x: number = null as unknown as number;
     y: number = null as unknown as number;
     visible: boolean = null as unknown as boolean;
+    opacity: number = 1;
 
-    constructor(x: number, y: number, visible: boolean) {
+    constructor(x: number, y: number, visible: boolean, opacity: number = 1) {
         this.x = x;
         this.y = y;
         this.visible = visible;
+        this.opacity = opacity;
     }
 }
 

@@ -1,4 +1,6 @@
+from __future__ import annotations
 from abc import ABC, abstractmethod
+from typing import List
 
 import numpy as np
 
@@ -24,7 +26,7 @@ class AnnotationDataset(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def get_links(self) -> list[list[int]]:
+    def get_links(self) -> List[List[int]]:
         raise NotImplementedError
 
     @abstractmethod
@@ -36,13 +38,13 @@ class AnnotationDataset(ABC):
 
 
 class FileList(BaseModel):
-    files: list[
+    files: List[
         str
     ]  # list of files to annotate. at the moment, only videos are supported
-    has_annotations: list[
+    has_annotations: List[
         bool
     ]  # for each file, a boolean indicating if the annotation file exists
-    has_source_data: list[
+    has_source_data: List[
         bool
     ]  # for each file, a boolean indicating if the source data file with 3D information exists
 

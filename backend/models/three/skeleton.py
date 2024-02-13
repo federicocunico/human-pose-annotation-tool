@@ -5,6 +5,6 @@ from ..pydantic_ext import BaseModel
 
 class Skeleton(BaseModel):
     name: str
-    joints: list[Vector3]
-    colors: list[Color]
-    links: list[list[int]]
+    joints: List[Vector3]
+    colors: List[Color]
+    links: List[List[int]]

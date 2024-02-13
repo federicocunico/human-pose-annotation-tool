@@ -1,6 +1,5 @@
 <template lang="pug">
-//- div 
-//-     input(type="checkbox" v-model="useCircles")
+
 .row(v-if="image.base64 != null").rowContainer
     img(ref="cameraImage" :src="'data:image/png;base64,' + image.base64").imageContainer
     //- @mousedown="addJoint"
@@ -10,63 +9,18 @@
         @mousemove="onMouseMove($event)"
     ).svgContainer
         g
-            template(v-for="l in annotation.links_2d"  :key="l")
-                line(
-                    v-if="isLinkShowable(l)"
-                    :x1="annotation.joints_2d[l[0]].x" 
-                    :y1="annotation.joints_2d[l[0]].y" 
-
-                    :x2="annotation.joints_2d[l[1]].x" 
-                    :y2="annotation.joints_2d[l[1]].y"
-
-                    :stroke-opacity="linkOpacity(l)"
-
-                    style="stroke:rgb(255,0,0);stroke-width:2"
-                )
-        g
             template(v-for="(p, index) in annotation.joints_2d" :key="index")
                 template(v-if="p.visible")
-
-                    template(v-if="useCircles")
-                        circle.hoverable-circle(
-                            :cx="p.x"
-                            :cy="p.y"
-                            :r="circleRadius"
-                            :fill-opacity="p.opacity"
-                            fill="green"
-                            @mousedown="enableDrag(p)"
-                            @mouseleave="onMouseLeave"
-                            @mouseenter="onMousEnter"
-                            @contextmenu="onOptions($event, index)"
-                        )
-                    template(v-else)
-                        line.hoverable-circle(
-                            :x1="p.x - circleRadius"
-                            :y1="p.y"
-                            :x2="p.x + circleRadius"
-                            :y2="p.y"
-                            stroke="green"
-                            stroke-width="2"
-                            :stroke-opacity="p.opacity"
-                            @mousedown="enableDrag(p)"
-                            @mouseleave="onMouseLeave"
-                            @mouseenter="onMousEnter"
-                            @contextmenu="onOptions($event, index)"
-                        )
-                        //- <!-- Vertical line -->
-                        line.hoverable-circle(
-                            :x1="p.x"
-                            :y1="p.y - circleRadius"
-                            :x2="p.x"
-                            :y2="p.y + circleRadius"
-                            stroke="green"
-                            stroke-width="2"
-                            :stroke-opacity="p.opacity"
-                            @mousedown="enableDrag(p)"
-                            @mouseleave="onMouseLeave"
-                            @mouseenter="onMousEnter"
-                            @contextmenu="onOptions($event, index)"
-                        )
+                    circle.hoverable-circle(
+                        :cx="p.x"
+                        :cy="p.y"
+                        :r="circleRadius"
+                        fill="green"
+                        @mousedown="enableDrag(p)"
+                        @mouseleave="onMouseLeave"
+                        @mouseenter="onMousEnter"
+                        @contextmenu="onOptions($event, index)"
+                    )
                     g
                         text(
                             :x="p.x-10" 
@@ -77,9 +31,6 @@
                             fill="green"
                             stroke="black"
                             stroke-width="1px"
-                            @mousedown="enableDrag(p)"
-                            @mouseleave="onMouseLeave"
-                            @mouseenter="onMousEnter"
                             ) {{ (annotation.names_2d[index]) }}
 
 </template>
@@ -99,7 +50,6 @@ const props = defineProps<{
     annotation: FrameAnnotation
 }>()
 
-const useCircles = ref(true);
 const SVGOverlay = ref<SVGElement>();
 const cameraImage = ref<HTMLImageElement>();
 
@@ -109,7 +59,7 @@ const containerHeight = ref(0);
 const imageWidth = ref(0);
 const imageHeight = ref(0);
 
-const circleRadius = 3;
+const circleRadius = 6;
 
 onMounted(() => {
     window.onresize = onResize;
@@ -196,11 +146,6 @@ function onMousEnter(e: MouseEvent) {
 function onMouseLeave(e: MouseEvent) {
     // console.log("Mouse leave")
     props.annotation.unsetSelected();
-
-    // resets opacities
-    for (let p of props.annotation.joints_2d) {
-        p.opacity = 1;
-    }
 }
 
 function getImageMousePosition(e: MouseEvent) {
@@ -229,8 +174,6 @@ function onMouseMove(e: MouseEvent) {
     let point = currentDraggingPoint.value;
     point.x = newX;
     point.y = newY;
-    point.opacity = 0.5;
-
 }
 
 function isLinkShowable(link: Array<number>) {
@@ -273,9 +216,16 @@ function onOptions(e: MouseEvent, idx: number) {
             {
                 label: "Joint: " + props.annotation.names_2d[idx],
                 divided: true,
-                disabled: true
+                // disabled: true,
+                onClick: () => {
+                    // text prompt
+                    let newJointName = prompt("Enter new name for joint:", props.annotation.names_2d[idx]);
+                    if (newJointName != null) {
+                        props.annotation.names_2d[idx] = newJointName;
+                        emit("data-updated");
+                    }
+                }
             },
-
             {
                 label: "Hide",
                 onClick: () => {
@@ -287,13 +237,6 @@ function onOptions(e: MouseEvent, idx: number) {
     });
 }
 
-function linkOpacity(link: Array<number>) {
-    let from = link[0];
-    let to = link[1];
-    let opacityJ1 = props.annotation.joints_2d[from].opacity;
-    let opacityJ2 = props.annotation.joints_2d[to].opacity;
-    return Math.min(opacityJ1, opacityJ2);
-}
 
 </script>
 

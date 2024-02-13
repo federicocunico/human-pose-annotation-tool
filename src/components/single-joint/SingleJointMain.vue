@@ -8,29 +8,14 @@ h3 Frame: {{ frame }} of {{ max_frames }}
     .col.lg-6
         .btn-group
             button.btn.btn-primary(@click="prevFrame" :disabled="frame <= 0") Previous
-            button.btn.btn-secondary(@click="addJoint" :disabled="maxJointReached") Add Joint
             button.btn.btn-secondary(@click="resetLocations") Reset Locations
-            button.btn.btn-secondary(@click="resetVisibility") Reset Visibility
-            //- make a dropdown with all joints2d visibility checkboxes
-            template(v-if="annotation")
-                .btn-group
-                    button.btn.btn-success.dropdown-toggle(type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false") Joint Visibility
-                    ul.dropdown-menu
-                        li(v-for="(pt, index) in annotation.joints_2d" :key="index" href="")
-                            div.dropdown-item(
-                                :class="pt.visible?'joint-visilbe' : 'joint-hidden'"
-                                @click="setVisibility($event, index)")
-                                | {{ annotation.names_2d[index] }} : {{ getVisibleText(pt) }}
-
+            button.btn.btn-secondary(@click="getProcessed" :disabled="processed") Apply Image Preprocessing
             button.btn.btn-primary(@click="nextFrame" :disabled="frame >= max_frames") Next
     .col-lg-3
 .row
     input(type="range" class="form-range" min="0" :max="max_frames" v-model="frame" step="1")
 
 .row(v-if="file && annotation")
-    .col(v-if="has3dData")
-        h4 3D Data
-        Plot3D(:annotation="annotation")
     .col
         h4 2D Data
         template(v-if="currentFrame")
@@ -47,21 +32,10 @@ h3 Frame: {{ frame }} of {{ max_frames }}
         h4 Current file: {{ file }} 
         h4 Annotation present? {{ annotation != null }}
 
-//- debug
-//- div.row
-//-     | Selected: {{ annotation?.selectedPoint }}
 </template>
 
-
-
-
-
-
-  
-
 <script setup lang="ts">
-import AnnotatorVue from './Annotator.vue';
-import Plot3D from '@/components/Plot3D.vue'
+import AnnotatorVue from './SingleJointAnnotator.vue';
 
 import { ref, onMounted, watch, watchEffect, computed } from 'vue';
 import { useRoute } from 'vue-router';
@@ -190,16 +164,19 @@ function getFileName(file: string | undefined) {
     return last?.split(".")[0] ?? "<unknown>";
 }
 
-function setVisibility(event: MouseEvent, index: number) {
-    event.preventDefault();
-    if (annotations.value == null) {
+const processed = ref<boolean>(false);
+async function getProcessed() {
+    if (!currentFrame.value) {
         return;
     }
-    if (annotation.value === undefined) {
-        return;
-    }
-    let pt = annotation.value?.joints_2d[index];
-    annotation.value.joints_2d[index].visible = !pt.visible;
+    let url = new UriBuilder(
+        window.remoteWebServerUrl,
+        "image_processing"
+    )
+    let response = await axios.post(url.build(), { "frame": currentFrame.value?.base64 });
+    let base64 = response.data.frame as string;
+    currentFrame.value.base64 = base64;
+    processed.value = true;
 }
 
 function getVisibleText(pt: Point2D) {
@@ -208,19 +185,6 @@ function getVisibleText(pt: Point2D) {
     }
     return "hidden";
 }
-
-function resetVisibility() {
-    let answer = confirm("Are you sure you want to reset visibility?");
-    if (!answer) {
-        return;
-    }
-
-    if (!annotations.value) {
-        return;
-    }
-    annotation.value?.resetVisibility();
-}
-
 
 function resetLocations() {
     let answer = confirm("Are you sure you want to reset locations? This action is NOT reversable");
@@ -233,42 +197,6 @@ function resetLocations() {
     }
     annotation.value?.resetLocations();
 }
-
-const has3dData = computed(() => {
-    if (!annotation.value) {
-        return false;
-    }
-    return annotation.value.has3dData();
-})
-
-
-function addJoint() {
-    if (!annotation.value) {
-        return;
-    }
-    if (maxJointReached()) {
-        return
-    }
-    annotation.value.joints_2d.push({
-        x: 120,
-        y: 120,
-        visible: false,
-        opacity: 1,
-    });
-}
-
-function maxJointReached() {
-    if (!annotation.value) {
-        return false;
-    }
-    let pts = annotation.value.joints_2d;
-    if (pts.length >= annotation.value.num_joints) {
-        return true;
-    }
-    return false;
-}
-
-
 
 </script>
 
