@@ -22,9 +22,7 @@ def is_source_data_empty(source_data_file: str) -> bool:
     return len(annotations) == 0
 
 
-def _generate_annotation(
-    config: Config, frame: int
-) -> FrameAnnotation:
+def _generate_annotation(config: Config, frame: int) -> FrameAnnotation:
     n_joints = config.joints_number
 
     kpts_2d = get_2d_kpts_placeholder(n_joints)
@@ -69,7 +67,9 @@ def _generate_annotation(
             [0.96148, 0.065682, 1.268157],
         ]
     )
-    assert len(kpts_2d) == len(kpts_3d), f"kpts length wrong {len(kpts_2d)} != {n_joints}"
+    assert len(kpts_2d) == len(
+        kpts_3d
+    ), f"kpts length wrong {len(kpts_2d)} != {n_joints}"
 
     ann = FrameAnnotation(
         num_joints=config.joints_number,
@@ -190,7 +190,9 @@ class OptitrackRawDataset(AnnotationDataset):
         self.mapping_file_to_csv = mapping_file_to_csv  # mapping from visualization file to csv and spot view file
 
         ## TEST
-        self.get_annotations_from_file(self.files[0], 10)
+        self.get_annotations_from_file(
+            self.files[0], self.get_max_frames_idx(self.files[0])
+        )
 
     def _file_to_csv(self, file: str) -> str:
         _, camera_view = file.split(SEP)
@@ -211,8 +213,7 @@ class OptitrackRawDataset(AnnotationDataset):
             # session = read_optitrack_csv(csv_file)
 
             annotations = [
-                _generate_annotation(self.config, i)
-                for i in range(max_frames)
+                _generate_annotation(self.config, i) for i in range(max_frames+1)
             ]
             annotations = Annotations(
                 dst=annotations_file,
@@ -236,6 +237,8 @@ class OptitrackRawDataset(AnnotationDataset):
         return fl
 
     def get_image(self, file: str, frame_idx: Optional[int] = None) -> np.ndarray:
+        if frame_idx > self.get_max_frames_idx(file):
+            return None
         csv_file, spot_view_file, camera_view = self._file_to_csv(file)
         with open(spot_view_file, "rb") as fp:
             spot_views_data = pkl.load(fp)
@@ -244,8 +247,8 @@ class OptitrackRawDataset(AnnotationDataset):
         return frame
 
     def get_all_annotations(self, file: str) -> Annotations:
-        max_frames = self.get_max_frames(file)
-        annotations = self.get_annotations_from_file(file, max_frames)
+        max_frames_idx = self.get_max_frames_idx(file)
+        annotations = self.get_annotations_from_file(file, max_frames_idx)
 
         return annotations
 
@@ -254,9 +257,9 @@ class OptitrackRawDataset(AnnotationDataset):
 
     ## Utils methods
 
-    def get_max_frames(self, file: str) -> int:
+    def get_max_frames_idx(self, file: str) -> int:
         csv_file, spot_view_file, camera_view = self._file_to_csv(file)
         with open(spot_view_file, "rb") as fp:
             spot_views_data = pkl.load(fp)
-        max_frames = len(spot_views_data["images"][camera_view])
-        return max_frames
+        max_frame_idx = len(spot_views_data["images"][camera_view]) - 1
+        return max_frame_idx

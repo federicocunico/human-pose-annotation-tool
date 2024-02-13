@@ -27,7 +27,7 @@ table.table.table-striped.table-hover
                     i.bi.bi-check-circle-fill.yellow
             td
                 button.btn.btn-primary(@click="startAnnotating(file)") Annotate Pose
-                button.btn.btn-secondary(@click="startJointAnnotating(file)") Annotate Single Joints 
+                //- button.btn.btn-secondary(@click="startJointAnnotating(file)") Annotate Single Joints 
         tr(v-else)
             td(colspan="4") No files to annotate
 </template>

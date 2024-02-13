@@ -25,7 +25,8 @@ h3 Frame: {{ frame }} of {{ max_frames }}
             button.btn.btn-primary(@click="nextFrame" :disabled="frame >= max_frames") Next
     .col-lg-3
 .row
-    input(type="range" class="form-range" min="0" :max="max_frames" v-model="frame" step="1")
+    .col.pl-5.pr-5
+        input(type="range" class="form-range" min="0" :max="max_frames" v-model="frame" step="1")
 
 .row(v-if="file && annotation")
     .col(v-if="has3dData")
@@ -107,6 +108,8 @@ async function get_annotation_data() {
     let annJson = res.data.annotations as any;
     let db = Annotations.fromJSON(annJson);
     annotations.value = db;
+    console.log(db)
+    console.log(db.annotations[frame.value])
     let ann = db.annotations[frame.value] as FrameAnnotation;
     max_frames.value = res.data.max_frames as number;
     let base64 = res.data.frame as string;
@@ -174,9 +177,9 @@ function saveAnnotation() {
         "save"
     )
     let to_save = annotations.value.toJSON();
-    console.log("Saving", to_save.annotations[0].visibles);
+    // console.log("Saving", to_save.annotations[0].visibles);
     axios.post(url.build(), to_save).then((res) => {
-        console.log("Saved successfully", res.data);
+        // console.log("Saved successfully", res.data);
     })
 }
 

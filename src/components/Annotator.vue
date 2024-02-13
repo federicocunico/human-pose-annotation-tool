@@ -27,7 +27,7 @@
             template(v-for="(p, index) in annotation.joints_2d" :key="index")
                 template(v-if="p.visible")
 
-                    template(v-if="useCircles")
+                    template(v-if="!useCircles")
                         circle.hoverable-circle(
                             :cx="p.x"
                             :cy="p.y"
@@ -40,7 +40,12 @@
                             @contextmenu="onOptions($event, index)"
                         )
                     template(v-else)
-                        line.hoverable-circle(
+                        circle.hoverable-circle(
+                            :cx="p.x"
+                            :cy="p.y"
+                            fill="none"
+                        )
+                        line(
                             :x1="p.x - circleRadius"
                             :y1="p.y"
                             :x2="p.x + circleRadius"
@@ -54,7 +59,7 @@
                             @contextmenu="onOptions($event, index)"
                         )
                         //- <!-- Vertical line -->
-                        line.hoverable-circle(
+                        line(
                             :x1="p.x"
                             :y1="p.y - circleRadius"
                             :x2="p.x"
@@ -69,7 +74,7 @@
                         )
                     g
                         text(
-                            :x="p.x-10" 
+                            :x="p.x -circleRadius-10" 
                             :y="p.y" 
                             font-size="16px"
                             font-weight="bold"
@@ -230,7 +235,6 @@ function onMouseMove(e: MouseEvent) {
     point.x = newX;
     point.y = newY;
     point.opacity = 0.5;
-
 }
 
 function isLinkShowable(link: Array<number>) {

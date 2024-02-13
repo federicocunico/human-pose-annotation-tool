@@ -33,7 +33,7 @@ class AnnotationDataset(ABC):
     def get_files(self) -> "FileList":
         raise NotImplementedError
 
-    def get_max_frames(self, file: str) -> int:
+    def get_max_frames_idx(self, file: str) -> int:
         raise NotImplementedError
 
 

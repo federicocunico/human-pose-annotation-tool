@@ -148,9 +148,9 @@ function saveAnnotation() {
         "save"
     )
     let to_save = annotations.value.toJSON();
-    console.log("Saving", to_save.annotations[0].visibles);
+    // console.log("Saving", to_save.annotations[0].visibles);
     axios.post(url.build(), to_save).then((res) => {
-        console.log("Saved successfully", res.data);
+        // console.log("Saved successfully", res.data);
     })
 }
 

@@ -61,7 +61,7 @@ def get_annotation_and_frame():
     all_annotations = dataset.get_all_annotations(target_file)
     frame_np = dataset.get_image(target_file, frame_idx)
     _, frame_base64 = convert_to_base64(frame_np)
-    max_frames = dataset.get_max_frames(target_file)
+    max_frames = dataset.get_max_frames_idx(target_file)
 
     response = AnnotationOutput(
         frame=frame_base64,

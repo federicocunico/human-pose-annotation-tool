@@ -118,7 +118,7 @@ class CanDataset(AnnotationDataset):
         return frame
 
     def get_all_annotations(self, file: str) -> Annotations:
-        max_frames = self.get_max_frames(file)
+        max_frames = self.get_max_frames_idx(file)
         annotations = get_annotations_from_file(self.config, file, max_frames)
 
         return annotations
@@ -128,7 +128,7 @@ class CanDataset(AnnotationDataset):
 
     ## Utils methods
 
-    def get_max_frames(self, file: str) -> int:
+    def get_max_frames_idx(self, file: str) -> int:
         cap = cv2.VideoCapture(file)
         max_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT)) - 1
         cap.release()
