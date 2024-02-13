@@ -10,6 +10,10 @@ export class Point2D {
         this.visible = visible;
         this.opacity = opacity;
     }
+
+    resetOpacity() {
+        this.opacity = 1;
+    }
 }
 
 export class Point3D {

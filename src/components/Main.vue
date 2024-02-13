@@ -71,7 +71,7 @@ import axios from 'axios';
 import { ImageBase64 } from "@/data_structures/Image";
 import { FrameAnnotation, Annotations } from '@/data_structures/Annotation';
 import { useLoading } from 'vue-loading-overlay';
-import type { Point2D } from '@/data_structures/Point';
+import { Point2D } from '@/data_structures/Point';
 
 let loader = useLoading();
 const route = useRoute();
@@ -252,12 +252,12 @@ function addJoint() {
     if (maxJointReached()) {
         return
     }
-    annotation.value.joints_2d.push({
-        x: 120,
-        y: 120,
-        visible: false,
-        opacity: 1,
-    });
+    annotation.value.joints_2d.push(new Point2D(
+        120,
+        120,
+        false,
+        1,
+    ));
 }
 
 function maxJointReached() {

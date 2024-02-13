@@ -3,14 +3,13 @@
 //-     input(type="checkbox" v-model="useCircles")
 .row(v-if="image.base64 != null").rowContainer
     img(ref="cameraImage" :src="'data:image/png;base64,' + image.base64").imageContainer
-    //- @mousedown="addJoint"
     svg(
         ref="SVGOverlay"
         @mouseup="disableDrag"
         @mousemove="onMouseMove($event)"
     ).svgContainer
         g
-            template(v-for="l in annotation.links_2d"  :key="l")
+            template(v-for="l in annotation.links_2d" :key="l" v-if="showLinks")
                 line(
                     v-if="isLinkShowable(l)"
                     :x1="annotation.joints_2d[l[0]].x" 
@@ -26,31 +25,25 @@
         g
             template(v-for="(p, index) in annotation.joints_2d" :key="index")
                 template(v-if="p.visible")
-
-                    template(v-if="!useCircles")
-                        circle.hoverable-circle(
+                    g.hoverable-circle(
+                        @mousedown="enableDrag(p)"
+                        @mouseleave="onMouseLeave"
+                        @mouseenter="onMousEnter"
+                        @contextmenu="onOptions($event, index)"
+                    )
+                        circle(
                             :cx="p.x"
                             :cy="p.y"
                             :r="circleRadius"
                             :fill-opacity="p.opacity"
                             fill="green"
-                            @mousedown="enableDrag(p)"
-                            @mouseleave="onMouseLeave"
-                            @mouseenter="onMousEnter"
-                            @contextmenu="onOptions($event, index)"
-                        )
-                    template(v-else)
-                        circle.hoverable-circle(
-                            :cx="p.x"
-                            :cy="p.y"
-                            fill="none"
                         )
                         line(
                             :x1="p.x - circleRadius"
                             :y1="p.y"
                             :x2="p.x + circleRadius"
                             :y2="p.y"
-                            stroke="green"
+                            stroke="red"
                             stroke-width="2"
                             :stroke-opacity="p.opacity"
                             @mousedown="enableDrag(p)"
@@ -64,7 +57,7 @@
                             :y1="p.y - circleRadius"
                             :x2="p.x"
                             :y2="p.y + circleRadius"
-                            stroke="green"
+                            stroke="red"
                             stroke-width="2"
                             :stroke-opacity="p.opacity"
                             @mousedown="enableDrag(p)"
@@ -86,7 +79,12 @@
                             @mouseleave="onMouseLeave"
                             @mouseenter="onMousEnter"
                             ) {{ (annotation.names_2d[index]) }}
-
+br
+ul
+    li
+        p Joint links: {{ showLinks? 'enabled' : 'disabled' }} (use right click to show options)
+    li
+        p # Joint visible {{ annotation.joints_2d.filter(j => j.visible).length }} / {{ annotation.joints_2d.length }}
 </template>
 
 
@@ -104,7 +102,7 @@ const props = defineProps<{
     annotation: FrameAnnotation
 }>()
 
-const useCircles = ref(true);
+const showLinks = ref(false);
 const SVGOverlay = ref<SVGElement>();
 const cameraImage = ref<HTMLImageElement>();
 
@@ -204,7 +202,7 @@ function onMouseLeave(e: MouseEvent) {
 
     // resets opacities
     for (let p of props.annotation.joints_2d) {
-        p.opacity = 1;
+        p.resetOpacity();
     }
 }
 
@@ -274,17 +272,54 @@ function onOptions(e: MouseEvent, idx: number) {
         x: e.x,
         y: e.y,
         items: [
+            // {
+            //     label: "Joint: " + props.annotation.names_2d[idx],
+            //     divided: true,
+            //     disabled: true
+            // },
             {
-                label: "Joint: " + props.annotation.names_2d[idx],
-                divided: true,
-                disabled: true
+                label: "Joint name: " + props.annotation.names_2d[idx] + " (click to edit)",
+                // disabled: true,
+                onClick: () => {
+                    // text prompt
+                    let newJointName = prompt("Enter new name for joint:", props.annotation.names_2d[idx]);
+                    if (newJointName != null) {
+                        props.annotation.names_2d[idx] = newJointName;
+                        emit("data-updated");
+                    }
+                }
             },
 
             {
-                label: "Hide",
+                divided: true,
+                label: "Hide Joint " + props.annotation.names_2d[idx],
                 onClick: () => {
                     props.annotation.joints_2d[idx].visible = false;
                     props.annotation.visibles[idx] = false;  // need to update visibles too, don't know why
+                }
+            },
+            {
+                label: "Show links",
+                onClick: () => {
+                    showLinks.value = true;
+                }
+            },
+            {
+                label: "Hide links",
+                onClick: () => {
+                    showLinks.value = false;
+                }
+            },
+            {
+                label: "Show every joint",
+                onClick: () => {
+                    props.annotation.joints_2d.forEach(j => j.visible = true);
+                }
+            },
+            {
+                label: "Hide every joint",
+                onClick: () => {
+                    props.annotation.joints_2d.forEach(j => j.visible = false);
                 }
             }
         ]
@@ -296,7 +331,11 @@ function linkOpacity(link: Array<number>) {
     let to = link[1];
     let opacityJ1 = props.annotation.joints_2d[from].opacity;
     let opacityJ2 = props.annotation.joints_2d[to].opacity;
-    return Math.min(opacityJ1, opacityJ2);
+    let op = Math.min(opacityJ1, opacityJ2);
+    if (op == 1) {
+        return 0.5;
+    }
+    return op;
 }
 
 </script>
@@ -304,7 +343,7 @@ function linkOpacity(link: Array<number>) {
 <style>
 .hoverable-circle:hover {
     cursor: pointer;
-    stroke-width: 2px;
+    stroke-width: 1px;
     stroke: yellow;
 }
 
