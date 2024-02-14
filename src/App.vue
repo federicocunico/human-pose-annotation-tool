@@ -1,9 +1,13 @@
 
 <template lang="pug">
 h1(@click="goHome").clickable-h1 Human Pose Annotation Tool
+div.alert.alert-danger.alert-dismissible.fade.show.error-visible(role="alert" v-if="thereIsError()")
+  strong Error: 
+  | {{ getErrorMessage() }}
+  button.btn.close(type="button" data-dismiss="alert" aria-label="Close" @click="resetError")
+    span(aria-hidden="true") &times;
+
 router-view
-//-h5
-  button.btn.btn-primary(@click="getFiles") Get Files List
 </template>
 
 <script setup lang="ts">
@@ -32,6 +36,18 @@ onMounted(() => {
   }
   console.log("Server Location:", window.remoteWebServerUrl)
 })
+
+function thereIsError() {
+  return store.$state.errorMessage !== null;
+}
+
+function resetError() {
+  store.$state.errorMessage = null;
+}
+
+function getErrorMessage() {
+  return store.$state.errorMessage;
+}
 
 const isValidFormat = (url: string | undefined): boolean => {
   if (!url) {
@@ -70,6 +86,10 @@ function goHome() {
 .clickable-h1:hover {
   color: #0073ff;
   /* Change this to your desired highlight color */
+}
+
+.error-visible {
+  position: fixed;
 }
 </style>
 

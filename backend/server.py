@@ -105,6 +105,32 @@ def image_processing():
     return jsonify({"frame": frame_base64, "success": success})
 
 
+@app.route("/open_explorer", methods=["POST"])
+def open_explorer():
+    file_path: str = request.json.get("file")
+
+    folder = os.path.dirname(file_path)
+    if not os.path.exists(folder):
+        return jsonify({"error": f"Folder {folder} does not exist."}), 400
+
+    # Open file explorer based on OS
+    if os.name == "nt":  # For Windows
+        os.system(f"explorer.exe /select,{file_path}")
+    elif os.name == "posix":  # For Linux/Unix
+        isMacos = os.uname().sysname == "Darwin"
+        if not isMacos:
+            # Linux
+            os.system(f"xdg-open {folder}")
+        else:
+            # macOS
+            os.system(f"open {folder}")
+    else:
+        # Handle other operating systems as needed
+        pass
+
+    return "", 204
+
+
 if __name__ == "__main__":
     import argparse
 

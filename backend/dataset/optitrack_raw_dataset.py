@@ -73,7 +73,7 @@ def _generate_annotation(config: Config, frame: int) -> FrameAnnotation:
 
     ann = FrameAnnotation(
         num_joints=config.joints_number,
-        visibles=[True] * len(kpts_2d),
+        visibles=[False] * len(kpts_2d),
         frame=frame,
         names_2d=[str(i) for i in range(len(kpts_2d))],
         confidences_2d=[1] * len(kpts_2d),

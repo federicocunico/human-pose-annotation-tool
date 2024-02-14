@@ -2,12 +2,18 @@
 //- div 
 //-     input(type="checkbox" v-model="useCircles")
 .row(v-if="image.base64 != null").rowContainer
-    img(ref="cameraImage" :src="'data:image/png;base64,' + image.base64").imageContainer
+    div(ref="imageContainer" class="image-container")
+        img(
+            ref="cameraImage" 
+            :src="'data:image/png;base64,' + image.base64"
+            class="zoomable-image"
+        ).imageContainer
     svg(
         ref="SVGOverlay"
         @mouseup="disableDrag"
         @mousemove="onMouseMove($event)"
-    ).svgContainer
+        @contextmenu="onCanvasRightClick($event)"
+    ).svgContainer        
         g
             template(v-for="l in annotation.links_2d" :key="l" v-if="showLinks")
                 line(
@@ -105,6 +111,9 @@ const props = defineProps<{
 const showLinks = ref(false);
 const SVGOverlay = ref<SVGElement>();
 const cameraImage = ref<HTMLImageElement>();
+const imageContainer = ref<HTMLDivElement>();
+const maxZoom = 5;
+const zoomValue = ref(1);
 
 const containerWidth = ref(0);
 const containerHeight = ref(0);
@@ -309,7 +318,46 @@ function onOptions(e: MouseEvent, idx: number) {
                 onClick: () => {
                     showLinks.value = false;
                 }
-            },
+            }
+        ]
+    });
+}
+
+function onCanvasRightClick(e: MouseEvent) {
+    // if click is over a joint, do nothing
+    let mousePos = getImageMousePosition(e);
+    if (mousePos == null) return;
+    let newX = mousePos.x;
+    let newY = mousePos.y;
+
+    for (let p of props.annotation.joints_2d) {
+        let dist = Math.pow(p.x - newX, 2) + Math.pow(p.y - newY, 2);
+        if (dist < Math.pow(circleRadius, 2)) {
+            return;
+        }
+    }
+
+    // otherwise, show options and prevent default context menu
+    e.preventDefault();
+
+    ContextMenu.showContextMenu({
+        x: e.x,
+        y: e.y,
+        items: [
+            // {
+            //     label: "Zoom In",
+            //     // disabled: true,
+            //     onClick: () => {
+            //         doZoom(e, true);
+            //     }
+            // },
+            // {
+            //     label: "Zoom Out",
+            //     // disabled: true,
+            //     onClick: () => {
+            //         doZoom(e, false);
+            //     }
+            // },
             {
                 label: "Show every joint",
                 onClick: () => {
@@ -323,7 +371,8 @@ function onOptions(e: MouseEvent, idx: number) {
                 }
             }
         ]
-    });
+    })
+
 }
 
 function linkOpacity(link: Array<number>) {
@@ -336,6 +385,54 @@ function linkOpacity(link: Array<number>) {
         return 0.5;
     }
     return op;
+}
+
+
+// function doZoom(event: MouseEvent, zoomIn: boolean) {
+//     if (!cameraImage.value || !imageContainer.value) return;
+
+//     const img = cameraImage.value;
+//     const rect = img.getBoundingClientRect();
+//     const x = (event.clientX - rect.left) / rect.width;
+//     const y = (event.clientY - rect.top) / rect.height;
+
+//     let scale = parseFloat(img.style.transform.replace("scale(", "").split(")")[0]) || 1;
+
+//     if (zoomIn) {
+//         scale += 1;
+//         if (scale > maxZoom) scale = maxZoom;
+//     } else {
+//         scale -= 1;
+//         if (scale < 1) scale = 1;
+//     }
+
+//     img.style.transformOrigin = `${x * 100}% ${y * 100}%`;
+//     img.style.transform = `scale(${scale})`;
+// }
+function doZoom(event: MouseEvent, zoomIn: boolean) {
+    if (!cameraImage.value || !imageContainer.value || !SVGOverlay.value) return;
+
+    const img = cameraImage.value;
+    const rect = img.getBoundingClientRect();
+    const x = (event.clientX - rect.left) / rect.width;
+    const y = (event.clientY - rect.top) / rect.height;
+
+    let scale = parseFloat(img.style.transform.replace("scale(", "").split(")")[0]) || 1;
+
+    if (zoomIn) {
+        scale += 1;
+        if (scale > maxZoom) scale = maxZoom;
+    } else {
+        scale -= 1;
+        if (scale < 1) scale = 1;
+    }
+    zoomValue.value = scale;
+
+    img.style.transformOrigin = `${x * 100}% ${y * 100}%`;
+    img.style.transform = `scale(${scale})`;
+
+    // Apply the same scale transformation to the SVG container
+    SVGOverlay.value.style.transform = `scale(${scale})`;
 }
 
 </script>
@@ -362,4 +459,28 @@ function linkOpacity(link: Array<number>) {
     /* display: block; */
     height: 100%;
 }
+
+.image-container {
+    overflow: hidden;
+    /* Ensure the image remains within its container */
+    max-width: 100%;
+    /* Ensure the image does not exceed its container width */
+    max-height: 100%;
+    /* Ensure the image does not exceed its container height */
+}
+
+.zoomable-image {
+    transition: transform 0.3s ease;
+    cursor: zoom-in;
+    transform-origin: top left;
+    /* Set the default transform origin */
+}
+
+.zoomable-image.zoomed {
+    cursor: zoom-out;
+}
+
+/* .zoomable-image.zoomed {
+    transform: scale(2);
+} */
 </style>

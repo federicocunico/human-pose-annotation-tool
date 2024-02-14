@@ -67,12 +67,14 @@ import Plot3D from '@/components/Plot3D.vue'
 import { ref, onMounted, watch, watchEffect, computed } from 'vue';
 import { useRoute } from 'vue-router';
 import { UriBuilder } from '@/uri';
+import { useStore } from '@/store';
 import axios from 'axios';
 import { ImageBase64 } from "@/data_structures/Image";
 import { FrameAnnotation, Annotations } from '@/data_structures/Annotation';
 import { useLoading } from 'vue-loading-overlay';
 import { Point2D } from '@/data_structures/Point';
 
+let store = useStore();
 let loader = useLoading();
 const route = useRoute();
 const file = ref<string>("");
@@ -82,6 +84,9 @@ const annotation = ref<FrameAnnotation>();
 const max_frames = ref<number>(0);
 
 const annotations = ref<Annotations>();
+
+let lastFrameRequest: Promise<any> | null = null;
+let lastSaveRequest: Promise<any> | null = null;
 
 onMounted(() => {
     file.value = route.query.target as string;
@@ -103,21 +108,25 @@ async function get_annotation_data() {
     )
     url.addParam("target", file.value)
     url.addParam("frame", frame.value?.toString() ?? "-1")
-
-    let res = await axios.get(url.build())
-    let annJson = res.data.annotations as any;
-    let db = Annotations.fromJSON(annJson);
-    annotations.value = db;
-    console.log(db)
-    console.log(db.annotations[frame.value])
-    let ann = db.annotations[frame.value] as FrameAnnotation;
-    max_frames.value = res.data.max_frames as number;
-    let base64 = res.data.frame as string;
-    // let format = res.data.format as string;
-    // console.log(res.data);
-    let img = new ImageBase64(base64);
-    currentFrame.value = img;
-    annotation.value = ann;
+    try {
+        let res = await axios.get(url.build())
+        let annJson = res.data.annotations as any;
+        let db = Annotations.fromJSON(annJson);
+        annotations.value = db;
+        console.log(db)
+        console.log(db.annotations[frame.value])
+        let ann = db.annotations[frame.value] as FrameAnnotation;
+        max_frames.value = res.data.max_frames as number;
+        let base64 = res.data.frame as string;
+        // let format = res.data.format as string;
+        // console.log(res.data);
+        let img = new ImageBase64(base64);
+        currentFrame.value = img;
+        annotation.value = ann;
+    }
+    catch (e) {
+        store.$state.errorMessage = "Error getting annotation data " + e;
+    }
 
     _loader.hide();
 }
@@ -160,16 +169,24 @@ watchEffect(() => {
     url.addParam("target", file.value)
     url.addParam("frame", frame.value?.toString() ?? "-1")
 
-    axios.get(url.build()).then((res) => {
+    if (lastFrameRequest != null) {
+        return;
+    }
+    lastFrameRequest = axios.get(url.build()).then((res) => {
         let base64 = res.data.frame as string;
         let img = new ImageBase64(base64);
         currentFrame.value = img;
+    }).finally(() => {
+        lastFrameRequest = null;
+        console.log("Resetting lastFrameRequest")
     })
-
 })
 
 function saveAnnotation() {
     if (!annotations.value) {
+        return;
+    }
+    if (lastSaveRequest != null) {
         return;
     }
     let url = new UriBuilder(
@@ -177,9 +194,8 @@ function saveAnnotation() {
         "save"
     )
     let to_save = annotations.value.toJSON();
-    // console.log("Saving", to_save.annotations[0].visibles);
-    axios.post(url.build(), to_save).then((res) => {
-        // console.log("Saved successfully", res.data);
+    lastSaveRequest = axios.post(url.build(), to_save).finally(() => {
+        lastSaveRequest = null;
     })
 }
 

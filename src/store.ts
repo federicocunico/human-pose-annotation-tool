@@ -5,6 +5,7 @@ import { defineStore } from 'pinia'
 export const useStore = defineStore('main', {
     state: () => ({
         remoteWebServerUrl: window.remoteWebServerUrl,
+        errorMessage: null as string | null,
     }),
     getters: {
     }

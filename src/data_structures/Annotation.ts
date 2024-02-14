@@ -110,13 +110,30 @@ export class FrameAnnotation {
     }
 
     resetLocations() {
-        // foreach with index
-        this.joints_2d.forEach((joint, index) => {
-            joint.x = 30 + (30 * index);
-            joint.y = 150;
-            joint.visible = true;
-            this.visibles[index] = true;
-        });
+        let num_kpts = this.joints_2d.length;
+        let max_height = 480
+        let max_width = 640
+        let increament = 30
+        let kk = increament
+        let r = 2
+        for(let i = 0; i < num_kpts; i++){
+            if (kk < max_height){
+                if (i % 5 == 0 || r * increament > max_width) {
+                    kk += increament
+                    r = 2
+                }
+            }
+            else{
+                kk -= increament
+            }
+
+            this.joints_2d[i].x = r * increament
+            this.joints_2d[i].y = kk
+            this.joints_2d[i].visible = true
+            this.visibles[i] = true
+
+            r += 1
+        }
     }
 
     toJSON() {

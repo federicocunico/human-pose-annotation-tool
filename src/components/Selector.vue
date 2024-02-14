@@ -1,6 +1,5 @@
 <template lang="pug">
 
-//- .container
 table.table.table-striped.table-hover
     thead
         tr
@@ -10,7 +9,9 @@ table.table.table-striped.table-hover
             th Action
     tbody
         tr(v-for="(file, index) in filesToAnnotate" v-if="filesToAnnotate.length > 0" :key="index")
-            td {{getFileName(file)}}
+            td 
+                div(@click="open_explorer(file)" style="cursor: pointer") 
+                    | {{getFileName(file)}}
             td 
                 //- i.bi.bi-x-circle-fill.red(v-if="!hasSourceData(index)")
                 //- i.bi.bi-check-circle-fill.green
@@ -35,10 +36,12 @@ table.table.table-striped.table-hover
 <script setup lang="ts">
 import router from '@/router';
 import { defualtUriBuilder } from '@/uri';
+import { useStore } from "@/store";
 import axios from 'axios';
 import { onMounted, ref } from 'vue';
 import { useLoading } from 'vue-loading-overlay';
 
+let store = useStore();
 let loader = useLoading();
 
 const filesToAnnotate = ref<string[]>([]);
@@ -57,16 +60,20 @@ async function getFiles() {
         // onCancel: onCancel,
     });
     let url = defualtUriBuilder("list")
-    let data = await axios.get(url);
+    try {
+        let data = await axios.get(url);
 
-    let serverData = data.data;
-    let serverFiles = serverData.files as string[];
-    let _filesWithAnn = serverData.has_annotations as boolean[];
-    let _filesWithSourceData = serverData.has_source_data as boolean[];
+        let serverData = data.data;
+        let serverFiles = serverData.files as string[];
+        let _filesWithAnn = serverData.has_annotations as boolean[];
+        let _filesWithSourceData = serverData.has_source_data as boolean[];
 
-    filesToAnnotate.value = serverFiles;
-    filesWithSourceData.value = _filesWithSourceData;
-    filesWithAnn.value = _filesWithAnn;
+        filesToAnnotate.value = serverFiles;
+        filesWithSourceData.value = _filesWithSourceData;
+        filesWithAnn.value = _filesWithAnn;
+    } catch (e) {
+        store.$state.errorMessage = "Error getting files to annotate " + e;
+    }
     _loader.hide();
 }
 
@@ -121,6 +128,11 @@ function startJointAnnotating(file: string) {
     let idx = 0;
     let route = `/annotate-joints/?target=${cam}&frame=${idx}`;
     router.push(route);
+}
+
+function open_explorer(file: string) {
+    let url = defualtUriBuilder("open_explorer");
+    axios.post(url, { file: file });
 }
 
 </script>
