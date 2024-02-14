@@ -5,6 +5,7 @@ from typing import List, Optional
 import cv2
 import numpy as np
 from tqdm import tqdm
+from matplotlib import pyplot as plt
 from backend.dataset import AnnotationDataset, FileList
 from backend.dataset.dataset_utils import natural_keys
 from backend.extra.keypoint_definition import get_2d_kpts_placeholder
@@ -107,27 +108,37 @@ class OptitrackRawDataset(AnnotationDataset):
             for f in os.listdir(root_folder)
             if os.path.isdir(os.path.join(root_folder, f))
         ]
-        all_subjects = [os.path.join(a, f) for a in all_actions for f in os.listdir(a)]
-        all_subjects = [f for f in all_subjects if os.path.isdir(f)]
-        all_subjects.sort(key=natural_keys)
+        all_subjects_folders = [
+            os.path.join(a, f) for a in all_actions for f in os.listdir(a)
+        ]
+        all_subjects_folders = [f for f in all_subjects_folders if os.path.isdir(f)]
+        all_subjects_folders.sort(key=natural_keys)
 
         ######### Stats
         print("Statistics on dataset")
         print("-" * 100)
         print(f"Found {len(all_actions)} actions in {root_folder}")
-        _unique_subjects = set([os.path.basename(s) for s in all_subjects])
+        _unique_subjects = set([os.path.basename(s) for s in all_subjects_folders])
         _unique_actions = set([os.path.basename(s) for s in all_actions])
         print(f"Found {len(_unique_subjects)} unique subjects")
         for act in _unique_actions:
             # check that all subjects are present
-            _act_subs = [s for s in all_subjects if act in s]
+            _act_subs = [s for s in all_subjects_folders if act in s]
             _act_subs = set([os.path.basename(s) for s in _act_subs])
             if len(_act_subs) != len(_unique_subjects):
                 print(f"Action {act} has {len(_act_subs)} subjects")
                 print(f"Missing subjects: {_unique_subjects - _act_subs}")
 
+        ####### FILTER BY ACTION
+        _all_subjects_folders = []
+        for s in all_subjects_folders:
+            if "act2" in s:
+                _all_subjects_folders.append(s)
+        all_subjects_folders = _all_subjects_folders
+        #######
+
         print("-" * 100)
-        ot_csvs = [(s, glob.glob(s + "/*.csv")) for s in all_subjects]
+        ot_csvs = [(s, glob.glob(s + "/*.csv")) for s in all_subjects_folders]
         csvs: List[str] = []
         for s, ot_csv in ot_csvs:
             if len(ot_csv) <= 0:
@@ -180,13 +191,13 @@ class OptitrackRawDataset(AnnotationDataset):
                 mapping_file_to_csv[fname] = (csv, spot_views_file)
 
             ####
-            break
+            # break
             ####
 
         files.sort(key=natural_keys)
         # visualization files for UI (len(csv) * len(views_for_csv))
         self.files: List[str] = files
-        self.annotation_files = [f.replace(SEP, "_annotation.pkl") for f in files]
+        self.annotation_files = [f + "_annotation.pkl" for f in files]
         self.mapping_file_to_csv = mapping_file_to_csv  # mapping from visualization file to csv and spot view file
 
         ## TEST
@@ -202,18 +213,9 @@ class OptitrackRawDataset(AnnotationDataset):
     def get_annotations_from_file(self, file: str, max_frames: int) -> Annotations:
         csv_file, spot_view_file, camera_view = self._file_to_csv(file)
         annotations_file = file + "_annotation.pkl"
-        if not os.path.exists(annotations_file) or True:
-            # import sys
-            # code_path = "/Users/federico/Documents/github/optitrack_glasgow"
-            # sys.path.append(code_path)
-
-            # ##### HEY YOU! yes, you reading this line.
-            # # If it gives you error while importing open3d.cuda, just go there and import open3d.cpu manually.
-            # from optitrack.optitrack_io import read_optitrack_csv
-            # session = read_optitrack_csv(csv_file)
-
+        if not os.path.exists(annotations_file):
             annotations = [
-                _generate_annotation(self.config, i) for i in range(max_frames+1)
+                _generate_annotation(self.config, i) for i in range(max_frames + 1)
             ]
             annotations = Annotations(
                 dst=annotations_file,

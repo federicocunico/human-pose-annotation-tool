@@ -105,6 +105,14 @@ def image_processing():
     return jsonify({"frame": frame_base64, "success": success})
 
 
+@app.route("/debug_plot", methods=["GET"])
+def debug_plot():
+    target_file = request.args.get("target")
+    frame_idx = int(request.args.get("frame"))
+    dataset.get_debug_plot(target_file, frame_idx)
+    return "", 204
+
+
 @app.route("/open_explorer", methods=["POST"])
 def open_explorer():
     file_path: str = request.json.get("file")

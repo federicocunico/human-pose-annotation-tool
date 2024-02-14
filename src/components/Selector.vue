@@ -80,8 +80,11 @@ async function getFiles() {
 function getFileName(file: string) {
     // get last part of path
     let last = file.split("/").pop();
+
     // remote ext
-    return last?.split(".")[0] ?? "<unknown>";
+    let fname = last?.split(".")[0] ?? "<unknown>";
+
+    return file;
 }
 
 function hasSourceData(index: number) {
@@ -105,15 +108,13 @@ function hasAnnotation(index: number) {
 }
 
 function isCompletelyAnnotated(index: number) {
-    // if (!filesWithAnn.value) {
-    //     return false;
-    // }
-    // if (filesWithAnn.value.length <= index) {
-    //     return false;
-    // }
-    // return filesWithAnn.value[index];
-
-    return true;
+    if (!filesWithAnn.value) {
+        return false;
+    }
+    if (filesWithAnn.value.length <= index) {
+        return false;
+    }
+    return filesWithAnn.value[index];
 }
 
 function startAnnotating(file: string) {

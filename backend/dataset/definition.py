@@ -1,6 +1,8 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import List
+import cv2
+from matplotlib import pyplot as plt
 
 import numpy as np
 
@@ -33,8 +35,32 @@ class AnnotationDataset(ABC):
     def get_files(self) -> "FileList":
         raise NotImplementedError
 
+    @abstractmethod
     def get_max_frames_idx(self, file: str) -> int:
         raise NotImplementedError
+
+    def get_debug_plot(self, file: str, frame_idx: int) -> np.ndarray:
+        frame = self.get_image(file, frame_idx)
+        annotations = self.get_all_annotations(file)
+        kpts_2d = None
+        kpts_visibles = None
+
+        for ann in annotations.annotations:
+            if ann.frame == frame_idx:
+                kpts_2d = ann.joints_2d
+                # kpts_3d = ann.joints_3d
+                kpts_visibles = ann.visibles
+                break
+
+        for i, (x, y) in enumerate(kpts_2d):
+            if kpts_visibles[i]:
+                frame = cv2.circle(frame, (int(x), int(y)), 5, (0, 255, 0), -1)
+
+        matplot_img = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        fig = plt.figure()
+        plt.imshow(matplot_img)
+        plt.show()
+        plt.close(fig)
 
 
 class FileList(BaseModel):

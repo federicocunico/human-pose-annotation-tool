@@ -9,6 +9,7 @@ h3 Frame: {{ frame }} of {{ max_frames }}
         .btn-group
             button.btn.btn-primary(@click="prevFrame" :disabled="frame <= 0") Previous
             button.btn.btn-secondary(@click="addJoint" :disabled="maxJointReached") Add Joint
+            button.btn.btn-link(@click="debugView") Debug
             button.btn.btn-secondary(@click="resetLocations") Reset Locations
             button.btn.btn-secondary(@click="resetVisibility") Reset Visibility
             //- make a dropdown with all joints2d visibility checkboxes
@@ -199,12 +200,12 @@ function saveAnnotation() {
     )
     let to_save = annotations.value.toJSON();
     lastSaveRequest = axios.post(url.build(), to_save)
-    .catch((e) => {
-        store.$state.errorMessage = "Error saving annotation " + e;
-    })
-    .finally(() => {
-        lastSaveRequest = null;
-    })
+        .catch((e) => {
+            store.$state.errorMessage = "Error saving annotation " + e;
+        })
+        .finally(() => {
+            lastSaveRequest = null;
+        })
 }
 
 function getFileName(file: string | undefined) {
@@ -295,7 +296,18 @@ function maxJointReached() {
     return false;
 }
 
+function debugView() {
+    let url = new UriBuilder(
+        window.remoteWebServerUrl,
+        "debug_plot"
+    )
+    url.addParam("target", file.value)
+    url.addParam("frame", frame.value?.toString() ?? "-1")
 
+    axios.get(url.build()).catch((e) => {
+        store.$state.errorMessage = "Error getting debug plot " + e;
+    })
+}
 
 </script>
 
