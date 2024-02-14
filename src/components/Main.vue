@@ -176,10 +176,14 @@ watchEffect(() => {
         let base64 = res.data.frame as string;
         let img = new ImageBase64(base64);
         currentFrame.value = img;
-    }).finally(() => {
-        lastFrameRequest = null;
-        console.log("Resetting lastFrameRequest")
     })
+        .catch((e) => {
+            store.$state.errorMessage = "Error getting frame " + e;
+        })
+        .finally(() => {
+            lastFrameRequest = null;
+            console.log("Resetting lastFrameRequest")
+        })
 })
 
 function saveAnnotation() {
@@ -194,7 +198,11 @@ function saveAnnotation() {
         "save"
     )
     let to_save = annotations.value.toJSON();
-    lastSaveRequest = axios.post(url.build(), to_save).finally(() => {
+    lastSaveRequest = axios.post(url.build(), to_save)
+    .catch((e) => {
+        store.$state.errorMessage = "Error saving annotation " + e;
+    })
+    .finally(() => {
         lastSaveRequest = null;
     })
 }

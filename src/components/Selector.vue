@@ -132,7 +132,9 @@ function startJointAnnotating(file: string) {
 
 function open_explorer(file: string) {
     let url = defualtUriBuilder("open_explorer");
-    axios.post(url, { file: file });
+    axios.post(url, { file: file }).catch((e) => {
+        store.$state.errorMessage = "Error opening explorer " + e;
+    })
 }
 
 </script>
