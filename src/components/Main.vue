@@ -1,5 +1,6 @@
 <template lang="pug">
-h3 Annotating file: {{ getFileName(file) }} 
+h3 Annotating file: 
+    div(@click="open_explorer(file)" style="cursor: pointer;") {{ getFileName(file) }} 
 h3 Frame: {{ frame }} of {{ max_frames }}
 
 //- make a slider from 0 to max_frames
@@ -67,7 +68,7 @@ import Plot3D from '@/components/Plot3D.vue'
 
 import { ref, onMounted, watch, watchEffect, computed } from 'vue';
 import { useRoute } from 'vue-router';
-import { UriBuilder } from '@/uri';
+import { UriBuilder, defualtUriBuilder } from '@/uri';
 import { useStore } from '@/store';
 import axios from 'axios';
 import { ImageBase64 } from "@/data_structures/Image";
@@ -212,10 +213,11 @@ function getFileName(file: string | undefined) {
     if (!file) {
         return "<unknown>";
     }
-    // get last part of path
-    let last = file.split("/").pop();
-    // remote ext
-    return last?.split(".")[0] ?? "<unknown>";
+    // // get last part of path
+    // let last = file.split("/").pop();
+    // // remote ext
+    // return last?.split(".")[0] ?? "<unknown>";
+    return file;
 }
 
 function setVisibility(event: MouseEvent, index: number) {
@@ -308,6 +310,15 @@ function debugView() {
         store.$state.errorMessage = "Error getting debug plot " + e;
     })
 }
+
+
+function open_explorer(file: string) {
+    let url = defualtUriBuilder("open_explorer");
+    axios.post(url, { file: file }).catch((e) => {
+        store.$state.errorMessage = "Error opening explorer " + e;
+    })
+}
+
 
 </script>
 

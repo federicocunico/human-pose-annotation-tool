@@ -14,6 +14,8 @@ from backend.models.conf import Config
 from backend.utility.cv_utils import get_frame_np
 from backend.utility.dyn_import import load_module
 
+FILTER_ACTIONS = ["act1_0", "act1_45", "act1_90", "act1_180", "act2"]
+
 
 def is_source_data_empty(source_data_file: str) -> bool:
     if not os.path.isfile(source_data_file):
@@ -130,11 +132,14 @@ class OptitrackRawDataset(AnnotationDataset):
                 print(f"Missing subjects: {_unique_subjects - _act_subs}")
 
         ####### FILTER BY ACTION
-        _all_subjects_folders = []
-        for s in all_subjects_folders:
-            if "act2" in s:
-                _all_subjects_folders.append(s)
-        all_subjects_folders = _all_subjects_folders
+        if len(FILTER_ACTIONS) > 0:
+            _all_subjects_folders = []
+            for s in all_subjects_folders:
+                for f in FILTER_ACTIONS:
+                    if f in s:
+                        _all_subjects_folders.append(s)
+            # make sure folder is unique (should be already unique, but just in case)
+            all_subjects_folders = list(set(_all_subjects_folders))
         #######
 
         print("-" * 100)
