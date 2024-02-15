@@ -11,6 +11,7 @@ h3 Frame: {{ frame }} of {{ max_frames }}
             button.btn.btn-primary(@click="prevFrame" :disabled="frame <= 0") Previous
             button.btn.btn-secondary(@click="addJoint" :disabled="maxJointReached") Add Joint
             button.btn.btn-link(@click="debugView") Debug
+            button.btn.btn-warning(@click="applyProcessing") {{ processingLabel() }}
             button.btn.btn-secondary(@click="resetLocations") Reset Locations
             button.btn.btn-secondary(@click="resetVisibility") Reset Visibility
             //- make a dropdown with all joints2d visibility checkboxes
@@ -20,6 +21,7 @@ h3 Frame: {{ frame }} of {{ max_frames }}
                     ul.dropdown-menu
                         li(v-for="(pt, index) in annotation.joints_2d" :key="index" href="")
                             div.dropdown-item(
+                                style="cursor: pointer;"
                                 :class="pt.visible?'joint-visilbe' : 'joint-hidden'"
                                 @click="setVisibility($event, index)")
                                 | {{ annotation.names_2d[index] }} : {{ getVisibleText(pt) }}
@@ -87,6 +89,8 @@ const annotation = ref<FrameAnnotation>();
 const max_frames = ref<number>(0);
 
 const annotations = ref<Annotations>();
+
+const isProcessingApplied = ref<boolean>(false);
 
 let lastFrameRequest: Promise<any> | null = null;
 let lastSaveRequest: Promise<any> | null = null;
@@ -180,6 +184,7 @@ watch(() => frame.value, () => {
     let ann = annotations.value.annotations[frame.value] as FrameAnnotation;
     annotation.value = ann;
     requestNewFrame();
+    isProcessingApplied.value = false;
 })
 
 // watchEffect(() => {
@@ -243,6 +248,14 @@ function saveAnnotation() {
         .finally(() => {
             lastSaveRequest = null;
         })
+}
+
+function processingLabel() {
+    // {{ isProcessingApplied ? 'Remove Processing' : 'Apply Processing' }}
+    if (isProcessingApplied.value) {
+        return "Processing (On)";
+    }
+    return "Processing (Off)";
 }
 
 function getFileName(file: string | undefined) {
@@ -353,6 +366,29 @@ function open_explorer(file: string) {
     axios.post(url, { file: file }).catch((e) => {
         store.$state.errorMessage = "Error opening explorer " + e;
     })
+}
+
+function applyProcessing() {
+    if (currentFrame.value == null) {
+        return;
+    }
+    if (isProcessingApplied.value) {
+        requestNewFrame();
+        isProcessingApplied.value = false;
+    }
+    else {
+        let url = new UriBuilder(
+            window.remoteWebServerUrl,
+            "image_processing"
+        )
+
+        axios.post(url.build(), currentFrame.value).then((res) => {
+            let base64 = res.data.frame as string;
+            let img = new ImageBase64(base64);
+            currentFrame.value = img;
+            isProcessingApplied.value = true;
+        })
+    }
 }
 
 

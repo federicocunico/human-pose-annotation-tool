@@ -88,7 +88,7 @@ def save_annotation():
 @app.route("/image_processing", methods=["POST"])
 def image_processing():
     data = request.json
-    b64_frame = data["frame"]
+    b64_frame = data["base64"]
 
     # Convert to numpy
     frame_np = convert_from_base64(b64_frame)
@@ -97,7 +97,8 @@ def image_processing():
     frame_np = cv2.cvtColor(frame_np, cv2.COLOR_BGR2GRAY)
     frame_np = cv2.equalizeHist(frame_np)
     # apply jet colormap
-    frame_np = cv2.applyColorMap(frame_np, cv2.COLORMAP_JET)
+    # frame_np = cv2.applyColorMap(frame_np, cv2.COLORMAP_JET)
+    frame_np = cv2.applyColorMap(frame_np, cv2.COLORMAP_VIRIDIS)
 
     # Convert back to base64
     success, frame_base64 = convert_to_base64(frame_np)
