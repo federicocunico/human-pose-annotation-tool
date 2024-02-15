@@ -35,7 +35,7 @@ h3 Frame: {{ frame }} of {{ max_frames }}
         h4 3D Data
         Plot3D(:annotation="annotation")
     .col
-        h4 2D Data
+        h4 2D Data 
         template(v-if="currentFrame")
             AnnotatorVue(
                 :image="currentFrame"
@@ -44,6 +44,7 @@ h3 Frame: {{ frame }} of {{ max_frames }}
             )
         template(v-else)
             h4 No frame found
+        p Image Frame: {{ lastUpdatedFrame }}
 .row(v-else)
     .col
         h4 No data to show (either no 2D or 3D data).
@@ -66,7 +67,7 @@ h3 Frame: {{ frame }} of {{ max_frames }}
 import AnnotatorVue from './Annotator.vue';
 import Plot3D from '@/components/Plot3D.vue'
 
-import { ref, onMounted, watch, watchEffect, computed } from 'vue';
+import { ref, onMounted, watch, watchEffect, computed, onBeforeUnmount } from 'vue';
 import { useRoute } from 'vue-router';
 import { UriBuilder, defualtUriBuilder } from '@/uri';
 import { useStore } from '@/store';
@@ -89,12 +90,31 @@ const annotations = ref<Annotations>();
 
 let lastFrameRequest: Promise<any> | null = null;
 let lastSaveRequest: Promise<any> | null = null;
+let lastUpdatedFrame = ref<number>(0);
+let ensureCorrectFrameInterval = 500 as number;
+let ensureCorrectFrameCall = 0 as number; // setInterval id
 
 onMounted(() => {
     file.value = route.query.target as string;
     frame.value = parseInt(route.query.frame as string);
     get_annotation_data();
+
+    // ensureCorrectFrameCall = setInterval(() => {
+    //     ensureCorrectFrame();
+    // }, ensureCorrectFrameInterval);
+
 })
+
+onBeforeUnmount(() => {
+    clearInterval(ensureCorrectFrameCall);
+})
+
+function ensureCorrectFrame() {
+    if (lastUpdatedFrame.value != frame.value) {
+        console.warn("Frame not updated, requesting new frame");
+        requestNewFrame();
+    }
+}
 
 async function get_annotation_data() {
     const _loader = loader.show({
@@ -115,13 +135,9 @@ async function get_annotation_data() {
         let annJson = res.data.annotations as any;
         let db = Annotations.fromJSON(annJson);
         annotations.value = db;
-        console.log(db)
-        console.log(db.annotations[frame.value])
         let ann = db.annotations[frame.value] as FrameAnnotation;
         max_frames.value = res.data.max_frames as number;
         let base64 = res.data.frame as string;
-        // let format = res.data.format as string;
-        // console.log(res.data);
         let img = new ImageBase64(base64);
         currentFrame.value = img;
         annotation.value = ann;
@@ -157,13 +173,28 @@ function prevFrame() {
     annotation.value = ann;
 }
 
-watchEffect(() => {
+watch(() => frame.value, () => {
     if (!annotations.value) {
         return;
     }
     let ann = annotations.value.annotations[frame.value] as FrameAnnotation;
     annotation.value = ann;
+    requestNewFrame();
+})
 
+// watchEffect(() => {
+//     if (!annotations.value) {
+//         return;
+//     }
+//     let ann = annotations.value.annotations[frame.value] as FrameAnnotation;
+//     annotation.value = ann;
+
+//     requestNewFrame();
+
+// })
+
+
+function requestNewFrame() {
     let url = new UriBuilder(
         window.remoteWebServerUrl,
         "get_frame"
@@ -176,8 +207,10 @@ watchEffect(() => {
     }
     lastFrameRequest = axios.get(url.build()).then((res) => {
         let base64 = res.data.frame as string;
+        let imgFrame = res.data.current_frame as number;
         let img = new ImageBase64(base64);
         currentFrame.value = img;
+        lastUpdatedFrame.value = imgFrame;
     })
         .catch((e) => {
             store.$state.errorMessage = "Error getting frame " + e;
@@ -185,8 +218,11 @@ watchEffect(() => {
         .finally(() => {
             lastFrameRequest = null;
             console.log("Resetting lastFrameRequest")
+            setTimeout(() => {
+                ensureCorrectFrame();
+            }, ensureCorrectFrameInterval);
         })
-})
+}
 
 function saveAnnotation() {
     if (!annotations.value) {

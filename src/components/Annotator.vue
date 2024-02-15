@@ -102,7 +102,6 @@
 <script lang="ts" setup>
 import { ref, defineProps, defineEmits, onMounted, nextTick, watchEffect, computed, watch } from "vue";
 import { Point2D } from "@/data_structures/Point";
-import * as d3 from "d3";
 import { FrameAnnotation } from "@/data_structures/Annotation";
 import type ImageBase64 from "@/data_structures/Image";
 import ContextMenu from '@imengyu/vue3-context-menu'
@@ -148,13 +147,14 @@ watchEffect(() => {
 
 const currentDraggingPoint = ref<Point2D | null>(null);
 
-watch(() => props.annotation.joints_2d, (_new, _old) => {
-    // emit("data-updated", props.annotation);
-    emit("data-updated");
+watch(() => props.annotation, (_new, _old) => {
+    if (_old.frame != _new.frame) {
+        // console.log("Frame changed, resetting zoom")
+        // no need to save again
+    } else {
+        emit("data-updated");
+    }
 }, { deep: true })
-// watchEffect(() => {
-//     emit("data-updated");
-// })
 
 
 function pointToImage(points: Point2D[]) {
