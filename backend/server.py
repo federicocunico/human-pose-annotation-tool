@@ -1,7 +1,10 @@
 import os
+import time
 import pickle as pkl
+import threading
 import cv2
 import flask
+import webbrowser
 from flask import abort, jsonify, request, send_from_directory, render_template_string
 from flask_cors import CORS
 from backend.dataset import AnnotationDataset, AnnotationOutput, ImageOutput
@@ -140,6 +143,14 @@ def open_explorer():
     return "", 204
 
 
+def open_browser():
+    # Delay for 1 second
+    time.sleep(1)
+
+    # Open default browser
+    webbrowser.open(f"http://localhost:{PORT}")
+
+
 if __name__ == "__main__":
     import argparse
 
@@ -147,9 +158,14 @@ if __name__ == "__main__":
     parser.add_argument(
         "--config", type=str, default="./backend/configs/optitrack_raw.yaml"
     )
+    parser.add_argument("--open_browser", action="store_true", default=True)
     args = parser.parse_args()
     config_file: str = args.config
     config: Config = get_config(config_file)
     dataset: AnnotationDataset = config.load_dataset()
 
+    # open default browser
+    if args.open_browser:
+        browser_thread = threading.Thread(target=open_browser)
+        browser_thread.start()
     app.run(host="0.0.0.0", port=PORT, threaded=False)
