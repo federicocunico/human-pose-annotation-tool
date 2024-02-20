@@ -2,7 +2,7 @@ import glob
 import os
 import pickle as pkl
 from typing import List, Optional
-import cv2
+import shutil
 import numpy as np
 from tqdm import tqdm
 from matplotlib import pyplot as plt
@@ -14,7 +14,7 @@ from backend.models.conf import Config
 from backend.utility.cv_utils import get_frame_np
 from backend.utility.dyn_import import load_module
 
-FILTER_ACTIONS = ["act1_0", "act1_45", "act1_90", "act1_180", "act2"]
+FILTER_ACTIONS = ["act2"]
 
 
 def is_source_data_empty(source_data_file: str) -> bool:
@@ -190,8 +190,14 @@ class OptitrackRawDataset(AnnotationDataset):
             for view in views:
                 if "depth" in view:
                     continue
-                # files.append(csv + " | " + view)
-                fname = csv.replace(".csv", f"{SEP}{view}")
+
+                subject = base_folder.split(os.sep)[-1]
+                action = base_folder.split(os.sep)[-2]
+                fname = os.path.join(base_folder, f"{action}_{subject}{SEP}{view}")
+                self.__legacy_conv(
+                    csv.replace(".csv", f"{SEP}{view}"), fname
+                )  # fix legacy name
+
                 files.append(fname)
                 mapping_file_to_csv[fname] = (csv, spot_views_file)
 
@@ -209,6 +215,10 @@ class OptitrackRawDataset(AnnotationDataset):
         self.get_annotations_from_file(
             self.files[0], self.get_max_frames_idx(self.files[0])
         )
+
+    def __legacy_conv(self, wrong_fname_file: str, new_fname: str) -> None:
+        if os.path.isfile(wrong_fname_file):
+            shutil.move(wrong_fname_file, new_fname + "_annotation.pkl")
 
     def _file_to_csv(self, file: str) -> str:
         _, camera_view = file.split(SEP)
