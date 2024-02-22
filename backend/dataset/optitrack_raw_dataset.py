@@ -14,7 +14,7 @@ from backend.models.conf import Config
 from backend.utility.cv_utils import get_frame_np
 from backend.utility.dyn_import import load_module
 
-FILTER_ACTIONS = ["act2"]
+FILTER_ACTIONS = ["act4"]
 
 
 def is_source_data_empty(source_data_file: str) -> bool:

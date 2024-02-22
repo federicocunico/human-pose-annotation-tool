@@ -5,8 +5,8 @@ h3 Frame: {{ frame }} of {{ max_frames }}
 
 //- make a slider from 0 to max_frames
 .row
-    .col-lg-3
-    .col.lg-6
+    .col-lg-2
+    .col.lg-8
         .btn-group
             button.btn.btn-primary(@click="prevFrame" :disabled="frame <= 0") Previous
             button.btn.btn-secondary(@click="addJoint" :disabled="maxJointReached") Add Joint
@@ -14,6 +14,8 @@ h3 Frame: {{ frame }} of {{ max_frames }}
             button.btn.btn-warning(@click="applyProcessing") {{ processingLabel() }}
             button.btn.btn-secondary(@click="resetLocations") Reset Locations
             button.btn.btn-secondary(@click="resetVisibility") Reset Visibility
+            button.btn.btn-secondary(@click="showLowerPart") Show Lower Part
+            button.btn.btn-secondary(@click="showFrontBody") Show Front Body
             //- make a dropdown with all joints2d visibility checkboxes
             template(v-if="annotation")
                 .btn-group
@@ -23,11 +25,13 @@ h3 Frame: {{ frame }} of {{ max_frames }}
                             div.dropdown-item(
                                 style="cursor: pointer;"
                                 :class="pt.visible?'joint-visilbe' : 'joint-hidden'"
+                                @mouseenter="selectPoint(index)"
+                                @mouseleave="deselectPoint(index)"
                                 @click="setVisibility($event, index)")
                                 | {{ annotation.names_2d[index] }} : {{ getVisibleText(pt) }}
 
             button.btn.btn-primary(@click="nextFrame" :disabled="frame >= max_frames") Next
-    .col-lg-3
+    .col-lg-2
 .row
     .col.pl-5.pr-5
         input(type="range" class="form-range" min="0" :max="max_frames" v-model="frame" step="1")
@@ -58,12 +62,6 @@ h3 Frame: {{ frame }} of {{ max_frames }}
 //-     | Selected: {{ annotation?.selectedPoint }}
 </template>
 
-
-
-
-
-
-  
 
 <script setup lang="ts">
 import AnnotatorVue from './Annotator.vue';
@@ -160,7 +158,9 @@ function nextFrame() {
     if (frame.value >= max_frames.value) {
         return;
     }
-    frame.value += 1;
+    // frame.value += 1;
+    // convert frame.value to integer and sum one
+    frame.value = parseInt(frame.value.toString()) + 1;
     let ann = annotations.value.annotations[frame.value] as FrameAnnotation;
     annotation.value = ann;
 }
@@ -172,7 +172,8 @@ function prevFrame() {
     if (frame.value <= 0) {
         return;
     }
-    frame.value -= 1;
+    // frame.value -= 1;
+    frame.value = parseInt(frame.value.toString()) - 1;
     let ann = annotations.value.annotations[frame.value] as FrameAnnotation;
     annotation.value = ann;
 }
@@ -391,6 +392,57 @@ function applyProcessing() {
     }
 }
 
+function selectPoint(index: number) {
+    if (!annotation.value) {
+        return;
+    }
+    annotation.value.selectedPoint = index;
+}
+
+function deselectPoint(index: number) {
+    if (!annotation.value) {
+        return;
+    }
+    annotation.value.selectedPoint = -1;
+}
+
+// TEMPORARY
+function showLowerPart() {
+    if (!annotation.value) {
+        return;
+    }
+    for (let i = 25; i < annotation.value.joints_2d.length; i++) {
+        annotation.value.joints_2d[i].visible = true;
+    }
+}
+function showFrontBody() {
+    if (!annotation.value) {
+        return;
+    }
+    
+    annotation.value.joints_2d[9].visible = true;
+    annotation.value.joints_2d[10].visible = true;
+    
+    annotation.value.joints_2d[0].visible = true;
+    annotation.value.joints_2d[1].visible = true;
+    annotation.value.joints_2d[4].visible = true;
+
+    annotation.value.joints_2d[22].visible = true;
+    annotation.value.joints_2d[23].visible = true;
+    annotation.value.joints_2d[24].visible = true;
+
+    annotation.value.joints_2d[15].visible = true;
+    annotation.value.joints_2d[16].visible = true;
+    annotation.value.joints_2d[17].visible = true;
+
+    annotation.value.joints_2d[25].visible = true;
+    annotation.value.joints_2d[26].visible = true;
+    annotation.value.joints_2d[31].visible = true;
+    annotation.value.joints_2d[32].visible = true;
+    annotation.value.joints_2d[33].visible = true;
+    
+}
+//
 
 </script>
 
