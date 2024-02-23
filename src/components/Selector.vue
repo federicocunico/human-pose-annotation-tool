@@ -71,33 +71,34 @@ async function getFiles() {
         let data = await axios.get(url);
 
         let serverData = data.data;
-        let serverFiles = serverData.files as string[];
+        let _serverFiles = serverData.files as string[];
         let _filesWithAnn = serverData.has_annotations as boolean[];
         let _filesWithSourceData = serverData.has_source_data as boolean[];
 
         let serverFilesObjs = [];
 
-        for (let i = 0; i < serverFiles.length; i++) {
-            let file = serverFiles[i];
+        for (let i = 0; i < _serverFiles.length; i++) {
+            let file = _serverFiles[i];
             let hasAnn = _filesWithAnn[i];
             let hasSource = _filesWithSourceData[i];
             let serverFile = new ServerFile(file, hasAnn, hasSource);
             serverFilesObjs.push(serverFile);
         }
+
+        /// DEBUG ///
+        // order by camera name, located in the filename after the '--' character and before its consecutive "_"
+        serverFilesObjs.sort((a: ServerFile, b: ServerFile) => {
+            let aCam = a.filename.split("--")[1].split("_")[0];
+            let bCam = b.filename.split("--")[1].split("_")[0];
+            return aCam.localeCompare(bCam);
+        });
+        // remove files without "left_fisheye_image" in the name
+        serverFilesObjs = serverFilesObjs.filter((f: ServerFile) => {
+            return f.filename.includes("--left_fisheye_image");
+        });
+        /////////////
+
         filesToAnnotate.value = serverFilesObjs;
-
-
-        // // order by camera name, located in the filename after the '--' character and before its consecutive "_"
-        // // then, sort with same indexes also the other arrays
-        // serverFiles.sort((a, b) => {
-        //     let aCam = a.split("--")[1].split("_")[0];
-        //     let bCam = b.split("--")[1].split("_")[0];
-        //     return aCam.localeCompare(bCam);
-        // });
-
-        // filesToAnnotate.value = serverFiles;
-        // filesWithSourceData.value = _filesWithSourceData;
-        // filesWithAnn.value = _filesWithAnn;
 
         for (let i = 0; i < filesToAnnotate.value.length; i++) {
             store.$state.temporaryHiddenIndexes[i] = false;
