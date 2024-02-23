@@ -6,6 +6,8 @@ export const useStore = defineStore('main', {
     state: () => ({
         remoteWebServerUrl: window.remoteWebServerUrl,
         errorMessage: null as string | null,
+        currFileIndex: null as number | null,
+        temporaryHiddenIndexes: {} as { [key: string]: boolean },
     }),
     getters: {
     }

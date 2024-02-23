@@ -3,32 +3,38 @@
 table.table.table-striped.table-hover
     thead
         tr
+            //- th #
             th Name
             th Has 3D Data
             th Annotated
             th Action
     tbody
-        tr(v-for="(file, index) in filesToAnnotate" v-if="filesToAnnotate.length > 0" :key="index")
-            td 
-                div(@click="open_explorer(file)" style="cursor: pointer") 
-                    | {{getFileName(file)}}
-            td 
-                //- i.bi.bi-x-circle-fill.red(v-if="!hasSourceData(index)")
-                //- i.bi.bi-check-circle-fill.green
-                div(v-if="!hasSourceData(index)")
-                    i.bi.bi-x-circle-fill.red
-                div(v-else)
-                    i.bi.bi-check-circle-fill.green
-            td  
-                div(v-if="!hasAnnotation(index)")
-                    i.bi.bi-x-circle-fill.red
-                div(v-else-if="isCompletelyAnnotated(index)")
-                    i.bi.bi-check-circle-fill.green
-                div(v-else)
-                    i.bi.bi-check-circle-fill.yellow
-            td
-                button.btn.btn-primary(@click="startAnnotating(file)") Annotate Pose
-                //- button.btn.btn-secondary(@click="startJointAnnotating(file)") Annotate Single Joints 
+        template(v-for="(file, index) in filesToAnnotate" v-if="filesToAnnotate.length > 0" :key="index")
+            //- tr(v-if="!isHidden(index)")
+            tr
+                //- td {{index}}
+                td 
+                    div(@click="open_explorer(file)" style="cursor: pointer") 
+                        | {{getFileName(file)}}
+                td 
+                    //- i.bi.bi-x-circle-fill.red(v-if="!hasSourceData(index)")
+                    //- i.bi.bi-check-circle-fill.green
+                    div(v-if="!hasSourceData(index)")
+                        i.bi.bi-x-circle-fill.red
+                    div(v-else)
+                        i.bi.bi-check-circle-fill.green
+                td  
+                    div(v-if="!hasAnnotation(index)")
+                        i.bi.bi-x-circle-fill.red
+                    div(v-else-if="isCompletelyAnnotated(index)")
+                        i.bi.bi-check-circle-fill.green
+                    div(v-else)
+                        i.bi.bi-check-circle-fill.yellow
+                td
+                    button.btn.btn-primary(@click="startAnnotating(file, index)") Annotate Pose
+                    //- button.btn.btn-secondary(@click="startJointAnnotating(file)") Annotate Single Joints 
+                    //- button.btn.btn-secondary.ms-1(@click="hide(index)") Hide
+
         tr(v-else)
             td(colspan="4") No files to annotate
 </template>
@@ -40,13 +46,14 @@ import { useStore } from "@/store";
 import axios from 'axios';
 import { onMounted, ref } from 'vue';
 import { useLoading } from 'vue-loading-overlay';
+import ServerFile from '@/data_structures/ServerFile';
 
 let store = useStore();
 let loader = useLoading();
 
-const filesToAnnotate = ref<string[]>([]);
-const filesWithSourceData = ref<boolean[]>([]);
-const filesWithAnn = ref<boolean[]>([]);
+const filesToAnnotate = ref<ServerFile[]>([]);
+// const filesWithSourceData = ref<boolean[]>([]);
+// const filesWithAnn = ref<boolean[]>([]);
 
 onMounted(() => {
     getFiles();
@@ -68,59 +75,85 @@ async function getFiles() {
         let _filesWithAnn = serverData.has_annotations as boolean[];
         let _filesWithSourceData = serverData.has_source_data as boolean[];
 
-        filesToAnnotate.value = serverFiles;
-        filesWithSourceData.value = _filesWithSourceData;
-        filesWithAnn.value = _filesWithAnn;
+        let serverFilesObjs = [];
+
+        for (let i = 0; i < serverFiles.length; i++) {
+            let file = serverFiles[i];
+            let hasAnn = _filesWithAnn[i];
+            let hasSource = _filesWithSourceData[i];
+            let serverFile = new ServerFile(file, hasAnn, hasSource);
+            serverFilesObjs.push(serverFile);
+        }
+        filesToAnnotate.value = serverFilesObjs;
+
+
+        // // order by camera name, located in the filename after the '--' character and before its consecutive "_"
+        // // then, sort with same indexes also the other arrays
+        // serverFiles.sort((a, b) => {
+        //     let aCam = a.split("--")[1].split("_")[0];
+        //     let bCam = b.split("--")[1].split("_")[0];
+        //     return aCam.localeCompare(bCam);
+        // });
+
+        // filesToAnnotate.value = serverFiles;
+        // filesWithSourceData.value = _filesWithSourceData;
+        // filesWithAnn.value = _filesWithAnn;
+
+        for (let i = 0; i < filesToAnnotate.value.length; i++) {
+            store.$state.temporaryHiddenIndexes[i] = false;
+        }
+
     } catch (e) {
         store.$state.errorMessage = "Error getting files to annotate " + e;
     }
     _loader.hide();
 }
 
-function getFileName(file: string) {
+function getFileName(file: ServerFile) {
     // get last part of path
-    let last = file.split("/").pop();
+    let last = file.filename.split("/").pop();
 
     // remote ext
     let fname = last?.split(".")[0] ?? "<unknown>";
 
-    return file;
+    return fname;
 }
 
 function hasSourceData(index: number) {
-    if (!filesWithSourceData.value) {
+    if (!filesToAnnotate.value) {
         return false;
     }
-    if (filesWithSourceData.value.length <= index) {
+    if (filesToAnnotate.value.length <= index) {
         return false;
     }
-    return filesWithSourceData.value[index];
+    return filesToAnnotate.value[index].hasSourceData;
 }
 
 function hasAnnotation(index: number) {
-    if (!filesWithAnn.value) {
+    if (!filesToAnnotate.value) {
         return false;
     }
-    if (filesWithAnn.value.length <= index) {
+    if (filesToAnnotate.value.length <= index) {
         return false;
     }
-    return filesWithAnn.value[index];
+    return filesToAnnotate.value[index].hasAnnotation;
 }
 
 function isCompletelyAnnotated(index: number) {
-    if (!filesWithAnn.value) {
+    if (!filesToAnnotate.value) {
         return false;
     }
-    if (filesWithAnn.value.length <= index) {
+    if (filesToAnnotate.value.length <= index) {
         return false;
     }
-    return filesWithAnn.value[index];
+    return filesToAnnotate.value[index].hasAnnotation;
 }
 
-function startAnnotating(file: string) {
-    let cam = encodeURIComponent(file);
+function startAnnotating(file: ServerFile, index: number) {
+    let cam = encodeURIComponent(file.filename);
     let idx = 0;
     let route = `/annotate/?target=${cam}&frame=${idx}`;
+    store.$state.currFileIndex = index;
     router.push(route);
 }
 
@@ -131,11 +164,19 @@ function startJointAnnotating(file: string) {
     router.push(route);
 }
 
-function open_explorer(file: string) {
+function open_explorer(f: ServerFile) {
     let url = defualtUriBuilder("open_explorer");
-    axios.post(url, { file: file }).catch((e) => {
+    axios.post(url, { file: f.filename }).catch((e) => {
         store.$state.errorMessage = "Error opening explorer " + e;
     })
+}
+
+function hide(index: number) {
+    store.$state.temporaryHiddenIndexes[index] = true;
+}
+
+function isHidden(index: number) {
+    return store.$state.temporaryHiddenIndexes[index];
 }
 
 </script>

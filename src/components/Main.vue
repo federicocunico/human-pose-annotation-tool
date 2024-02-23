@@ -1,7 +1,15 @@
 <template lang="pug">
-h3 Annotating file: 
-    div(@click="open_explorer(file)" style="cursor: pointer;") {{ getFileName(file) }} 
-h3 Frame: {{ frame }} of {{ max_frames }}
+.row
+    .col
+        h3(@click="open_explorer(file)" style="cursor: pointer;") Annotating file: {{ getFileName(file) }}
+
+.row
+    //- .col-4
+    //- .col-2
+    h3 Frame: {{ frame }} of {{ max_frames }}
+    //- .col-1
+    //-     button.btn.btn-primary(@click="nextAnnotation") Next File
+    //- .col-5
 
 //- make a slider from 0 to max_frames
 .row
@@ -9,13 +17,13 @@ h3 Frame: {{ frame }} of {{ max_frames }}
     .col.lg-8
         .btn-group
             button.btn.btn-primary(@click="prevFrame" :disabled="frame <= 0") Previous
-            button.btn.btn-secondary(@click="addJoint" :disabled="maxJointReached") Add Joint
-            button.btn.btn-link(@click="debugView") Debug
-            button.btn.btn-warning(@click="applyProcessing") {{ processingLabel() }}
+            //- button.btn.btn-secondary(@click="addJoint" :disabled="maxJointReached") Add Joint
+            button.btn.btn-light(@click="debugView") Debug
+            button.btn(@click="applyProcessing" :class="isProcessingApplied?'btn-warning':'btn-dark'") {{ processingLabel() }}
             button.btn.btn-secondary(@click="resetLocations") Reset Locations
-            button.btn.btn-secondary(@click="resetVisibility") Reset Visibility
-            button.btn.btn-secondary(@click="showLowerPart") Show Lower Part
-            button.btn.btn-secondary(@click="showFrontBody") Show Front Body
+            //- button.btn.btn-secondary(@click="resetVisibility") Reset Visibility
+            button.btn.btn-info(@click="showLowerPart") Show Lower Part
+            button.btn.btn-info(@click="showFrontBody") Show Front Body
             //- make a dropdown with all joints2d visibility checkboxes
             template(v-if="annotation")
                 .btn-group
@@ -33,8 +41,10 @@ h3 Frame: {{ frame }} of {{ max_frames }}
             button.btn.btn-primary(@click="nextFrame" :disabled="frame >= max_frames") Next
     .col-lg-2
 .row
-    .col.pl-5.pr-5
+    .col-1
+    .col-10
         input(type="range" class="form-range" min="0" :max="max_frames" v-model="frame" step="1")
+    .col-1
 
 .row(v-if="file && annotation")
     .col(v-if="has3dData")
@@ -90,13 +100,17 @@ const annotations = ref<Annotations>();
 
 const isProcessingApplied = ref<boolean>(false);
 
+const emit = defineEmits(['next-annotation'])
+
 let lastFrameRequest: Promise<any> | null = null;
 let lastSaveRequest: Promise<any> | null = null;
 let lastUpdatedFrame = ref<number>(0);
 let ensureCorrectFrameInterval = 500 as number;
 let ensureCorrectFrameCall = 0 as number; // setInterval id
+let currentFileIndex = null as number | null;
 
 onMounted(() => {
+    currentFileIndex = store.$state.currFileIndex;
     file.value = route.query.target as string;
     frame.value = parseInt(route.query.frame as string);
     get_annotation_data();
@@ -321,6 +335,13 @@ const has3dData = computed(() => {
     return annotation.value.has3dData();
 })
 
+const isIndexSet = computed(() => {
+    if (currentFileIndex == null) {
+        return false;
+    }
+    return currentFileIndex >= 0;
+})
+
 
 function addJoint() {
     if (!annotation.value) {
@@ -406,6 +427,10 @@ function deselectPoint(index: number) {
     annotation.value.selectedPoint = -1;
 }
 
+function nextAnnotation() {
+    emit("next-annotation");
+}
+
 // TEMPORARY
 function showLowerPart() {
     if (!annotation.value) {
@@ -419,10 +444,10 @@ function showFrontBody() {
     if (!annotation.value) {
         return;
     }
-    
+
     annotation.value.joints_2d[9].visible = true;
     annotation.value.joints_2d[10].visible = true;
-    
+
     annotation.value.joints_2d[0].visible = true;
     annotation.value.joints_2d[1].visible = true;
     annotation.value.joints_2d[4].visible = true;
@@ -440,7 +465,7 @@ function showFrontBody() {
     annotation.value.joints_2d[31].visible = true;
     annotation.value.joints_2d[32].visible = true;
     annotation.value.joints_2d[33].visible = true;
-    
+
 }
 //
 
