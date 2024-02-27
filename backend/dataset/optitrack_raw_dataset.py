@@ -14,7 +14,7 @@ from backend.models.conf import Config
 from backend.utility.cv_utils import get_frame_np
 from backend.utility.dyn_import import load_module
 
-FILTER_ACTIONS = ["act4"]
+FILTER_ACTIONS = []
 
 
 def is_source_data_empty(source_data_file: str) -> bool:
@@ -194,9 +194,9 @@ class OptitrackRawDataset(AnnotationDataset):
                 subject = base_folder.split(os.sep)[-1]
                 action = base_folder.split(os.sep)[-2]
                 fname = os.path.join(base_folder, f"{action}_{subject}{SEP}{view}")
-                self.__legacy_conv(
-                    csv.replace(".csv", f"{SEP}{view}"), fname
-                )  # fix legacy name
+
+                _legacy_wrong_fname = csv.replace(".csv", f"{SEP}{view}_annotation.pkl")
+                self.__legacy_conv(_legacy_wrong_fname, fname)  # fix legacy name
 
                 files.append(fname)
                 mapping_file_to_csv[fname] = (csv, spot_views_file)
@@ -211,6 +211,14 @@ class OptitrackRawDataset(AnnotationDataset):
         self.annotation_files = [f + "_annotation.pkl" for f in files]
         self.mapping_file_to_csv = mapping_file_to_csv  # mapping from visualization file to csv and spot view file
 
+        ## Optional, update annotation dst
+        # for f in self.annotation_files:
+        #     if os.path.isfile(f):
+        #         with open(f, "rb") as fp:
+        #             annotations = pkl.load(fp)
+        #         ann = Annotations(dst=f, annotations=annotations["annotations"])
+        #         ann.save()
+
         ## TEST
         self.get_annotations_from_file(
             self.files[0], self.get_max_frames_idx(self.files[0])
@@ -218,7 +226,13 @@ class OptitrackRawDataset(AnnotationDataset):
 
     def __legacy_conv(self, wrong_fname_file: str, new_fname: str) -> None:
         if os.path.isfile(wrong_fname_file):
-            shutil.move(wrong_fname_file, new_fname + "_annotation.pkl")
+            _new_fname = new_fname + "_annotation.pkl"
+            # open and save with new name
+            with open(wrong_fname_file, "rb") as fp:
+                annotations = pkl.load(fp)
+            ann = Annotations(dst=_new_fname, annotations=annotations["annotations"])
+            ann.save()
+            os.remove(wrong_fname_file)
 
     def _file_to_csv(self, file: str) -> str:
         _, camera_view = file.split(SEP)
