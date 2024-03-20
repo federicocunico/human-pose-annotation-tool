@@ -22,7 +22,9 @@ def aligned_to_annotation(aligned):
     cam_name = aligned.split(act + "_")[-1].split("_aligned")[0]
 
     annotation_name = f"{act}_{subj}--{cam_name}_annotation.pkl"
-    return os.path.join(os.path.dirname(aligned), annotation_name)
+    folder = os.path.dirname(aligned)
+    folder = os.path.abspath(os.path.join(folder, "..", "tool"))
+    return os.path.join(folder, annotation_name)
 
 
 def _load_pkl(file: str):
