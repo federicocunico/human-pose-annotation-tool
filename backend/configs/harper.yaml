@@ -1,0 +1,32 @@
+name: "Harper"
+data_root: "./data/harper"
+dataloader_script: "./backend/dataset/harper_dataset.py"
+dataloader_class: "HARPERDataset"
+
+joints_number: 21  # matches the number of joints in the skeleton both 3D and 2D
+joints_links: [
+    [0, 1],
+    [1, 2],
+    [2, 3],
+    [3, 4],
+    [3, 5],
+    [5, 6],
+    [6, 7],
+    [7, 8],
+    [3, 9],
+    [9, 10],
+    [10, 11],
+    [11, 12],
+    [0, 13],
+    [13, 14],
+    [14, 15],
+    [15, 16],
+    [0, 17],
+    [17, 18],
+    [18, 19],
+    [19, 20],
+    [6, 13],
+    [10, 17],
+]
+joints_names: []
+# joints_colors: []   # to be added later

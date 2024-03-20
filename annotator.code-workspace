@@ -13,7 +13,7 @@
             // Server python
             {
                 "name": "Server",
-                "type": "python",
+                "type": "debugpy",
                 "request": "launch",
                 "program": "${workspaceFolder}/backend/server.py",
                 "console": "integratedTerminal",
@@ -24,7 +24,7 @@
             },
             {
                 "name": "Current file",
-                "type": "python",
+                "type": "debugpy",
                 "request": "launch",
                 "program": "${file}",
                 "console": "integratedTerminal",

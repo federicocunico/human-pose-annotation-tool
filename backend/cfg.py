@@ -1,6 +1,6 @@
 import os
 import yaml
-from models.conf import Config as _Config
+from backend.models.conf import Config as _Config
 
 
 ### Constants

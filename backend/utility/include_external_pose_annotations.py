@@ -3,7 +3,7 @@ import pickle as pkl
 
 import numpy as np
 from backend.dataset import AnnotationDataset
-from backend.dataset.can_dataset import CanDataset
+from backend.dataset.harper_dataset import CanDataset
 from backend.dataset.definition import FileList
 from backend.extra.keypoint_definition import get_2d_kpts_placeholder
 from backend.models.annotation import Annotations, FrameAnnotation

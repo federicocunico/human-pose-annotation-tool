@@ -1,7 +1,7 @@
 # from backend.dataset import AnnotationDataset
 from typing import List, Tuple
 from backend.utility.dyn_import import load_module
-from pydantic_ext import BaseModel
+from backend.pydantic_ext import BaseModel
 
 
 class Config(BaseModel):

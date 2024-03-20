@@ -85,18 +85,18 @@ async function getFiles() {
             serverFilesObjs.push(serverFile);
         }
 
-        /// DEBUG ///
-        // order by camera name, located in the filename after the '--' character and before its consecutive "_"
-        serverFilesObjs.sort((a: ServerFile, b: ServerFile) => {
-            let aCam = a.filename.split("--")[1].split("_")[0];
-            let bCam = b.filename.split("--")[1].split("_")[0];
-            return aCam.localeCompare(bCam);
-        });
-        // remove files without "left_fisheye_image" in the name
-        serverFilesObjs = serverFilesObjs.filter((f: ServerFile) => {
-            return f.filename.includes("--left_fisheye_image");
-        });
-        /////////////
+        // /// DEBUG ///
+        // // order by camera name, located in the filename after the '--' character and before its consecutive "_"
+        // serverFilesObjs.sort((a: ServerFile, b: ServerFile) => {
+        //     let aCam = a.filename.split("--")[1].split("_")[0];
+        //     let bCam = b.filename.split("--")[1].split("_")[0];
+        //     return aCam.localeCompare(bCam);
+        // });
+        // // remove files without "left_fisheye_image" in the name
+        // serverFilesObjs = serverFilesObjs.filter((f: ServerFile) => {
+        //     return f.filename.includes("--left_fisheye_image"); // || f.filename.includes("--back_fisheye_image");
+        // });
+        // /////////////
 
         filesToAnnotate.value = serverFilesObjs;
 

@@ -39,7 +39,7 @@ class AnnotationDataset(ABC):
     def get_max_frames_idx(self, file: str) -> int:
         raise NotImplementedError
 
-    def get_debug_plot(self, file: str, frame_idx: int) -> np.ndarray:
+    def get_debug_plot(self, file: str, frame_idx: int, wait_time: float = 60.0) -> np.ndarray:
         frame = self.get_image(file, frame_idx)
         annotations = self.get_all_annotations(file)
         kpts_2d = None
@@ -59,7 +59,11 @@ class AnnotationDataset(ABC):
         matplot_img = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         fig = plt.figure()
         plt.imshow(matplot_img)
-        plt.show()
+        if wait_time > 0:
+            plt.show(block=False)
+            plt.pause(wait_time)
+        else:
+            plt.show()
         plt.close(fig)
 
 

@@ -156,7 +156,7 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--config", type=str, default="./backend/configs/optitrack_raw.yaml"
+        "--config", type=str, default="./backend/configs/harper.yaml"
     )
     parser.add_argument("--open_browser", action="store_true", default=True)
     args = parser.parse_args()
