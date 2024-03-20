@@ -55,6 +55,8 @@ class HARPERDataset(AnnotationDataset):
             max_frames[annotation_file] = len(v) - 1
             annotations[annotation_file] = Annotations(**_load_pkl(annotation_file))
 
+        # sort files by keys
+        files = dict(sorted(files.items(), key=lambda item: natural_keys(item[0])))
         self.files: dict[str, str] = files
         self.max_frames: dict[str, int] = max_frames
         self.annotations: dict[str, Annotations] = annotations
