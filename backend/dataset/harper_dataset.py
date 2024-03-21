@@ -11,6 +11,9 @@ from backend.models.annotation import Annotations, FrameAnnotation
 from backend.models.conf import Config
 from backend.utility.cv_utils import get_frame_np
 
+# leave empty to load all actions. Otherwise, specify the actions to load (e.g. ["act1_90", "act1_0", "act1_180"])
+ACTIONS = []
+
 
 def aligned_to_annotation(aligned):
     # 'data/harper/test/annotations/toa_act3_left_fisheye_image_aligned.pkl'
@@ -32,6 +35,13 @@ def _load_pkl(file: str):
         data = pkl.load(f)
     return data
 
+def sort_dict_by_key(dictionary):
+    """
+    Function to sort a dictionary based on keys in a human-like natural order.
+    """
+    sorted_keys = sorted(dictionary.keys(), key=natural_keys)
+    sorted_dict = {key: dictionary[key] for key in sorted_keys}
+    return sorted_dict
 
 class HARPERDataset(AnnotationDataset):
     data_root: str  # from AnnotationDataset
@@ -47,6 +57,9 @@ class HARPERDataset(AnnotationDataset):
             os.path.join(root_folder, "**", "*aligned.pkl"), recursive=True
         )
         for pkl_file in all_pkls:
+            if len(ACTIONS) > 0:
+                if not any([a in pkl_file for a in ACTIONS]):
+                    continue
             annotation_file = aligned_to_annotation(pkl_file)
             assert os.path.isfile(
                 annotation_file
@@ -58,7 +71,7 @@ class HARPERDataset(AnnotationDataset):
             annotations[annotation_file] = Annotations(**_load_pkl(annotation_file))
 
         # sort files by keys
-        files = dict(sorted(files.items(), key=lambda item: natural_keys(item[0])))
+        files = {key:files[key] for key in sorted(files.keys(), key=natural_keys)}
         self.files: dict[str, str] = files
         self.max_frames: dict[str, int] = max_frames
         self.annotations: dict[str, Annotations] = annotations
