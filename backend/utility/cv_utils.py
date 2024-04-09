@@ -6,17 +6,21 @@ import numpy as np
 
 def get_frame_np(video_or_path: str, frame_idx: int = 0) -> np.ndarray:
     if os.path.isfile(video_or_path):
-        try:
-            cap = cv2.VideoCapture(video_or_path)
-            num_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT)) - 1
-            cap.set(cv2.CAP_PROP_POS_FRAMES, frame_idx)
-            succ, frame = cap.read()
-            if not succ:
-                raise RuntimeError(f"Unable to read frame from {video_or_path}")
-            cap.release()
-        except Exception as e:
+        if video_or_path.endswith(".png") or video_or_path.endswith(".jpg") or video_or_path.endswith(".jpeg"):
             frame = cv2.imread(video_or_path)
-        # return cv2.cvtColor(frame, cv2.COLOR_BGR2RGB), num_frames
+            num_frames = 1
+        else:
+            try:
+                cap = cv2.VideoCapture(video_or_path)
+                num_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT)) - 1
+                cap.set(cv2.CAP_PROP_POS_FRAMES, frame_idx)
+                succ, frame = cap.read()
+                if not succ:
+                    raise RuntimeError(f"Unable to read frame from {video_or_path}")
+                cap.release()
+            except Exception as e:
+                print(f"Unable to open video: {video_or_path}")
+                return None, 0
         return frame, num_frames
     raise NotImplementedError(f"URI {video_or_path} not supported")
 
