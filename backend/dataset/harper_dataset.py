@@ -108,6 +108,18 @@ class HARPERDataset(AnnotationDataset):
     def get_links(self) -> List[List[int]]:
         return self.config.joints_links
 
+    def reload(self, updated_ann: Annotations):
+        # find in self.annotations the annotations file
+        found = False
+        for _, ann in enumerate(self.annotations):
+            if self.annotations[ann].dst == updated_ann.dst:
+                # reload
+                self.annotations[ann] = Annotations(**_load_pkl(updated_ann.dst))
+                found = True
+                break
+        if not found:
+            print("[W] annotation not found, weird!?")
+
     get_max_frames_idx = lambda self, file: self.max_frames[file]
 
 

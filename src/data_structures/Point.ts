@@ -14,6 +14,10 @@ export class Point2D {
     resetOpacity() {
         this.opacity = 1;
     }
+
+    equals(other: Point2D){
+        return other.x == this.x && other.y == this.y && other.visible == this.visible
+    }
 }
 
 export class Point3D {

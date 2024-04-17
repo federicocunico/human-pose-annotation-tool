@@ -147,12 +147,23 @@ watchEffect(() => {
 
 const currentDraggingPoint = ref<Point2D | null>(null);
 
-watch(() => props.annotation, (_new, _old) => {
+watch(() => ({ ...props.annotation }), (_new, _old) => {
     if (_old.frame != _new.frame) {
         // console.log("Frame changed, resetting zoom")
         // no need to save again
     } else {
-        emit("data-updated");
+        // NOT WORKING WITH {deep:true}
+        // console.log(" Checking!")
+        // for (let i =0; i < _new.joints_2d.length; i++){
+        //     let currJ2d = _new.joints_2d[i];
+        //     let oldJ2d = _old.joints_2d[i];
+        //     if (!currJ2d.equals(oldJ2d)){
+        //         console.log(" Saving!")
+        //         emitSave();
+        //         break
+        //     }
+        // }
+        emitSave();
     }
 }, { deep: true })
 
@@ -301,7 +312,7 @@ function onOptions(e: MouseEvent, idx: number) {
                     let newJointName = prompt("Enter new name for joint:", props.annotation.names_2d[idx]);
                     if (newJointName != null) {
                         props.annotation.names_2d[idx] = newJointName;
-                        emit("data-updated");
+                        emitSave()
                     }
                 }
             },
@@ -328,6 +339,10 @@ function onOptions(e: MouseEvent, idx: number) {
             }
         ]
     });
+}
+
+function emitSave(){
+    emit("data-updated");
 }
 
 function onCanvasRightClick(e: MouseEvent) {

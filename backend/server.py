@@ -85,6 +85,9 @@ def save_annotation():
     with open(ann.dst, "wb") as fp:
         pkl.dump(out, fp)
 
+    if hasattr(dataset, "reload"):
+        dataset.reload(ann)
+
     return flask.jsonify({"status": "ok"})
 
 
