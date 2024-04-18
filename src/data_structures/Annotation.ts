@@ -136,6 +136,14 @@ export class FrameAnnotation {
         }
     }
 
+    translate(x: number, y: number) {
+        for(let i = 0; i < this.joints_2d.length; i++){
+            let currJoint = this.joints_2d[i]
+            currJoint.x += x
+            currJoint.y += y
+        }
+    }
+
     toJSON() {
         let joints2d = [];
         for (let i = 0; i < this.joints_2d.length; i++) {
@@ -218,5 +226,6 @@ export class FrameAnnotation {
             json.format_3d
         );
     }
+
 }
 

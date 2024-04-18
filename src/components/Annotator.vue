@@ -100,7 +100,7 @@
 
 
 <script lang="ts" setup>
-import { ref, defineProps, defineEmits, onMounted, nextTick, watchEffect, computed, watch } from "vue";
+import { ref, defineProps, defineEmits, onMounted, onUnmounted, nextTick, watchEffect, computed, watch } from "vue";
 import { Point2D } from "@/data_structures/Point";
 import { FrameAnnotation } from "@/data_structures/Annotation";
 import type ImageBase64 from "@/data_structures/Image";
@@ -134,7 +134,6 @@ onMounted(() => {
         onResize();
     })
 })
-
 
 watchEffect(() => {
     let img = new Image();

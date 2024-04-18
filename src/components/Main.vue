@@ -19,6 +19,7 @@
             button.btn.btn-primary(@click="prevFrame" :disabled="frame <= 0") Previous
             //- button.btn.btn-secondary(@click="addJoint" :disabled="maxJointReached") Add Joint
             button.btn.btn-light(@click="debugView") Debug
+            button.btn(@click="setKeyboardInput" :class="isKeyboardEnabled?'btn-success':'btn-secondary'") Keyboard Input ({{ isKeyboardEnabled?'On':'Off' }})
             button.btn(@click="applyProcessing" :class="isProcessingApplied?'btn-warning':'btn-dark'") {{ processingLabel() }}
             button.btn.btn-secondary(@click="resetLocations") Reset Locations
             //- button.btn.btn-secondary(@click="resetVisibility") Reset Visibility
@@ -99,6 +100,7 @@ const max_frames = ref<number>(0);
 const annotations = ref<Annotations>();
 
 const isProcessingApplied = ref<boolean>(false);
+const isKeyboardEnabled = ref<boolean>(true);
 
 const emit = defineEmits(['next-annotation'])
 
@@ -108,6 +110,7 @@ let lastUpdatedFrame = ref<number>(0);
 let ensureCorrectFrameInterval = 500 as number;
 let ensureCorrectFrameCall = 0 as number; // setInterval id
 let currentFileIndex = null as number | null;
+let step = 1;
 
 onMounted(() => {
     currentFileIndex = store.$state.currFileIndex;
@@ -119,10 +122,72 @@ onMounted(() => {
     //     ensureCorrectFrame();
     // }, ensureCorrectFrameInterval);
 
+    window.addEventListener("keydown", keyPressed);
 })
+
+
+const keyPressed = (ev: KeyboardEvent) => {
+    // console.log(isKeyboardEnabled.value)
+    if (!isKeyboardEnabled.value) return;
+    // console.log(" key pressed", ev.key)
+    switch (ev.key) {
+        case 'n':
+            nextFrame()
+            break
+        case 'p':
+            prevFrame()
+            break
+        case 'q':
+            window.history.back()
+            break
+        case 'ArrowUp':
+            ev.preventDefault(); // Ignore default action
+            // Handle Arrow Up key
+            annotation.value?.translate(0, -step)
+            break;
+        case 'ArrowDown':
+            ev.preventDefault(); // Ignore default action
+            // Handle Arrow Down key
+            annotation.value?.translate(0, step)
+            break;
+        case 'ArrowLeft':
+            ev.preventDefault(); // Ignore default action
+            // Handle Arrow Left key
+            annotation.value?.translate(-step, 0)
+            break;
+        case 'ArrowRight':
+            ev.preventDefault(); // Ignore default action
+            // Handle Arrow Right key
+            annotation.value?.translate(step, 0)
+            break;
+        case '+':
+            ev.preventDefault(); // Ignore default action
+            // Handle '+' key
+            step += 1
+            step = Math.max(step, 50)
+            console.log(step)
+            break;
+        case '-':
+            ev.preventDefault(); // Ignore default action
+            // Handle '-' key
+            step -= 1
+            step = Math.max(step, 1)
+            console.log(step)
+            break;
+        default:
+            // Handle other keys
+            break;
+    }
+};
+function setKeyboardInput() {
+    console.log("kb", isKeyboardEnabled.value)
+    if (isKeyboardEnabled.value == null) return;
+    isKeyboardEnabled.value = !isKeyboardEnabled.value
+}
 
 onBeforeUnmount(() => {
     clearInterval(ensureCorrectFrameCall);
+    window.removeEventListener("keydown", keyPressed)
 })
 
 function ensureCorrectFrame() {
