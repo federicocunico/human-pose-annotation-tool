@@ -44,18 +44,21 @@ def get_list_of_videos():
 def get_frame_from_camera():
     target_file = request.args.get("target")
     frame_idx = int(request.args.get("frame"))
+    draw_previous = request.args.get("draw_previous") == "true"
     frame = dataset.get_image(target_file, frame_idx)
     
-    # modify the frame with some text
-    for ann in dataset.get_all_annotations(target_file).annotations:
-        if ann.frame == frame_idx - 1:
-            kpts_2d = ann.joints_2d
-            kpts_visibles = ann.visibles
-            break
-    
-    for i, (x, y) in enumerate(kpts_2d):
-        if kpts_visibles[i]:
-            frame = cv2.circle(frame, (int(x), int(y)), 3, (0, 255, 0), -1)
+    if draw_previous:
+        kpts_2d = []
+        # modify the frame with some text
+        for ann in dataset.get_all_annotations(target_file).annotations:
+            if ann.frame == frame_idx - 1:
+                kpts_2d = ann.joints_2d
+                kpts_visibles = ann.visibles
+                break
+        if len(kpts_2d) > 0:
+            for i, (x, y) in enumerate(kpts_2d):
+                if kpts_visibles[i]:
+                    frame = cv2.circle(frame, (int(x), int(y)), 3, (0, 255, 0), -1)
 
     success, frame_base64 = convert_to_base64(frame)
     if not success:

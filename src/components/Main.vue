@@ -25,6 +25,7 @@
             //- button.btn.btn-secondary(@click="resetVisibility") Reset Visibility
             button.btn.btn-info(@click="showLowerPart") Show Lower Part
             button.btn.btn-info(@click="showFrontBody") Show Front Body
+            button.btn.btn-info(@click="viewPrevious") {{ view_previous ? 'Hide Previous' : 'View Previous'}}
             //- make a dropdown with all joints2d visibility checkboxes
             template(v-if="annotation")
                 .btn-group
@@ -96,6 +97,7 @@ const frame = ref<number>(0);
 const currentFrame = ref<ImageBase64>();
 const annotation = ref<FrameAnnotation>();
 const max_frames = ref<number>(0);
+const view_previous = ref<boolean>(true);
 
 const annotations = ref<Annotations>();
 
@@ -286,6 +288,7 @@ function requestNewFrame() {
     )
     url.addParam("target", file.value)
     url.addParam("frame", frame.value?.toString() ?? "-1")
+    url.addParam("draw_previous", view_previous.value ? "true" : "false")
 
     if (lastFrameRequest != null) {
         return;
@@ -307,6 +310,11 @@ function requestNewFrame() {
                 ensureCorrectFrame();
             }, ensureCorrectFrameInterval);
         })
+}
+
+function viewPrevious() {
+    view_previous.value = !view_previous.value;
+    requestNewFrame();
 }
 
 function saveAnnotation() {
