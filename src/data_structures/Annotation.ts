@@ -163,10 +163,10 @@ export class FrameAnnotation {
             let isPointVis = this.joints_2d[i].visible;
             let sanityCheck = this.visibles[i];
             if (isPointVis != sanityCheck) {
-                console.warn(
-                    "Visibility of frame " + this.frame + " is inconsistent!",
-                    "Joint " + i + " is " + isPointVis + " but frame is " + sanityCheck + "!"
-                );
+                // console.warn(
+                //     "Visibility of frame " + this.frame + " is inconsistent!",
+                //     "Joint " + i + " is " + isPointVis + " but frame is " + sanityCheck + "!"
+                // );
             }
             inferredVisibles.push(
                 isPointVis
