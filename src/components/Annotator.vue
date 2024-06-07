@@ -357,7 +357,7 @@ function onCanvasRightClick(e: MouseEvent) {
     //         return;
     //     }
     // }
-    if (props.annotation.selectedPoint > 0) {
+    if (props.annotation.selectedPoint >= 0) {
         return;
     }
 
