@@ -36,6 +36,18 @@ The tool supports the hidden joints annotation. It is possible to mark individua
 1. Execute `npm install` in the root directory of the project to download the node modules.
 2. Execute `npm run build` to build the project. This will create a `backend/dist` directory with the compiled files.
 
+OR execute from the root directory of the project:
+
+Linux:
+```bash
+./scripts/build.sh
+```
+
+Windows:
+```powershell
+./scripts/build.ps1
+```
+
 ## Main server run
 1. (Optional) Set your port in the script `backend/cfg.py` (default=51100).
 2. Execute `python backend/server.py` to start the server. The server will be running on `http://localhost:51100`.
@@ -66,3 +78,19 @@ Yes. Just provide the 3D data joints as empty lists. The tool will still work.
 
 Each video file or image is annotated with a `<name>_annotation.pkl>` file, where `<name>` is the source file name. The file is a dictionary with the following fields:
 
+```python
+frame: int  # frame number
+num_joints: int  # number of joints
+visibles: List[bool]  # list of bools, each bool indicates if the joint is visible
+
+names_2d: List[str]  # name of joints
+joints_2d: List[List[int]]  # Array<Point>;  // 2D coordinates of joints
+links_2d: List[List[int]]  # Array<Array<number>>;  // links between joints
+confidences_2d: List[float]  # Array<number>;  // confidence for each joint
+format_2d: str  # string;  // format of the annotation (e.g. coco, openpose, etc.)
+
+names_3d: List[str]  #  //  name of joints
+joints_3d: List[List[float]]  # Array<Point>;  // 3d
+links_3d: List[List[int]]  # Array<Array<number>>;  // links between joints
+format_3d: str  # string;  // format of the annotation (e.g. coco, openpose, etc.)
+```
