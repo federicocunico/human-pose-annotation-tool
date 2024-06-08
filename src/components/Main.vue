@@ -101,6 +101,8 @@ const view_previous = ref<boolean>(true);
 
 const annotations = ref<Annotations>();
 
+let backupAnnotations = null as Annotations | null;
+
 const isProcessingApplied = ref<boolean>(false);
 const isKeyboardEnabled = ref<boolean>(true);
 
@@ -132,6 +134,15 @@ const keyPressed = (ev: KeyboardEvent) => {
     // console.log(isKeyboardEnabled.value)
     if (!isKeyboardEnabled.value) return;
     // console.log(" key pressed", ev.key)
+
+    if ((ev.ctrlKey || ev.metaKey) && ev.key === 'z') {
+        if (backupAnnotations == null) return;
+        if (! annotation.value) return;
+        annotation.value?.copy_from(backupAnnotations.annotations[annotation.value.frame]);
+        console.log("Restored annotation")
+        return;
+    }
+
     switch (ev.key) {
         case 'n':
             nextFrame()
@@ -141,6 +152,17 @@ const keyPressed = (ev: KeyboardEvent) => {
             break
         case 'q':
             window.history.back()
+            break
+        case 'c':
+            // copy previous frame to current
+
+            let currFrame = frame.value;
+            let previousFrame = currFrame - 1;
+            if (previousFrame < 0) {
+                return;
+            }
+            let prevAnn = annotations.value?.annotations[previousFrame] as FrameAnnotation;
+            annotation.value?.copy_from(prevAnn);
             break
         case 'ArrowUp':
             ev.preventDefault(); // Ignore default action
@@ -199,6 +221,28 @@ function ensureCorrectFrame() {
     }
 }
 
+// async function _get_annotation_from_server(file: string, frame: string | number) {
+//     let url = new UriBuilder(
+//         window.remoteWebServerUrl,
+//         "annotation"
+//     )
+//     url.addParam("target", file)
+//     url.addParam("frame", frame.toString() ?? "-1")
+
+//     let frameN = parseInt(frame.toString());
+//     try {
+//         let res = await axios.get(url.build())
+//         let annJson = res.data.annotations as any;
+//         let db = Annotations.fromJSON(annJson);
+//         let ann = db.annotations[frameN] as FrameAnnotation;
+//         return ann;
+//     }
+//     catch (e) {
+//         store.$state.errorMessage = "Error getting annotation data " + e;
+//     }
+//     return null;
+// }
+
 async function get_annotation_data() {
     const _loader = loader.show({
         // Optional parameters
@@ -224,6 +268,11 @@ async function get_annotation_data() {
         let img = new ImageBase64(base64);
         currentFrame.value = img;
         annotation.value = ann;
+
+        backupAnnotations = new Annotations(
+            db.dst,
+            db.annotations.map((a) => a.clone())
+        );
     }
     catch (e) {
         store.$state.errorMessage = "Error getting annotation data " + e;

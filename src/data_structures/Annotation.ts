@@ -116,14 +116,14 @@ export class FrameAnnotation {
         let increament = 30
         let kk = increament
         let r = 2
-        for(let i = 0; i < num_kpts; i++){
-            if (kk < max_height){
+        for (let i = 0; i < num_kpts; i++) {
+            if (kk < max_height) {
                 if (i % 5 == 0 || r * increament > max_width) {
                     kk += increament
                     r = 2
                 }
             }
-            else{
+            else {
                 kk -= increament
             }
 
@@ -137,11 +137,71 @@ export class FrameAnnotation {
     }
 
     translate(x: number, y: number) {
-        for(let i = 0; i < this.joints_2d.length; i++){
+        for (let i = 0; i < this.joints_2d.length; i++) {
             let currJoint = this.joints_2d[i]
             currJoint.x += x
             currJoint.y += y
         }
+    }
+
+    clone() {
+        let joints2d = [];
+        for (let i = 0; i < this.joints_2d.length; i++) {
+            joints2d.push(
+                new Point2D(this.joints_2d[i].x, this.joints_2d[i].y, this.joints_2d[i].visible)
+            );
+        }
+        let joints3d = [] as Array<Point3D>;
+        for (let i = 0; i < this.joints_3d.length; i++) {
+            joints3d.push(
+                new Point3D(this.joints_3d[i].x, this.joints_3d[i].y, this.joints_3d[i].z)
+            );
+        }
+
+        return new FrameAnnotation(
+            this.frame,
+            this.num_joints,
+            this.visibles,
+            this.names_2d,
+            joints2d,
+            this.links_2d,
+            this.confidences_2d,
+            this.format_2d,
+            this.names_3d,
+            joints3d,
+            this.links_3d,
+            this.format_3d
+        );
+
+    }
+
+    copy_from(frame: FrameAnnotation, keep_frame_number: boolean = true) {
+        if (!keep_frame_number) {
+            this.frame = frame.frame;
+        }
+        this.num_joints = frame.num_joints;
+        this.visibles = frame.visibles;
+
+        this.names_2d = frame.names_2d;
+        for (let i = 0; i < frame.joints_2d.length; i++) {
+            this.joints_2d[i].x = frame.joints_2d[i].x;
+            this.joints_2d[i].y = frame.joints_2d[i].y;
+            this.joints_2d[i].visible = frame.joints_2d[i].visible;
+        }
+
+        this.links_2d = frame.links_2d;
+        this.confidences_2d = frame.confidences_2d;
+        this.format_2d = frame.format_2d;
+
+        this.names_3d = frame.names_3d;
+        for (let i = 0; i < frame.joints_3d.length; i++) {
+            this.joints_3d[i].x = frame.joints_3d[i].x;
+            this.joints_3d[i].y = frame.joints_3d[i].y;
+            this.joints_3d[i].z = frame.joints_3d[i].z;
+        }
+
+        this.links_3d = frame.links_3d;
+        this.format_3d = frame.format_3d;
     }
 
     toJSON() {

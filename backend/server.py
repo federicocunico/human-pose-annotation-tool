@@ -47,6 +47,10 @@ def get_frame_from_camera():
     draw_previous = request.args.get("draw_previous") == "true"
     frame = dataset.get_image(target_file, frame_idx)
     
+    anns = dataset.get_all_annotations(target_file).annotations
+    for i, an in enumerate(anns):
+        an.frame = i
+
     if draw_previous:
         kpts_2d = []
         # modify the frame with some text
