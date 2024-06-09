@@ -175,7 +175,7 @@ export class FrameAnnotation {
 
     }
 
-    copy_from(frame: FrameAnnotation, keep_frame_number: boolean = true) {
+    copy_from(frame: FrameAnnotation, keep_frame_number: boolean = true, copy_only_2d: boolean = true) {
         if (!keep_frame_number) {
             this.frame = frame.frame;
         }
@@ -193,15 +193,17 @@ export class FrameAnnotation {
         this.confidences_2d = frame.confidences_2d;
         this.format_2d = frame.format_2d;
 
-        this.names_3d = frame.names_3d;
-        for (let i = 0; i < frame.joints_3d.length; i++) {
-            this.joints_3d[i].x = frame.joints_3d[i].x;
-            this.joints_3d[i].y = frame.joints_3d[i].y;
-            this.joints_3d[i].z = frame.joints_3d[i].z;
-        }
+        if (!copy_only_2d) {
+            this.names_3d = frame.names_3d;
+            for (let i = 0; i < frame.joints_3d.length; i++) {
+                this.joints_3d[i].x = frame.joints_3d[i].x;
+                this.joints_3d[i].y = frame.joints_3d[i].y;
+                this.joints_3d[i].z = frame.joints_3d[i].z;
+            }
 
-        this.links_3d = frame.links_3d;
-        this.format_3d = frame.format_3d;
+            this.links_3d = frame.links_3d;
+            this.format_3d = frame.format_3d;
+        }
     }
 
     toJSON() {

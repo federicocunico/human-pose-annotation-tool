@@ -112,7 +112,7 @@ const props = defineProps<{
     annotation: FrameAnnotation
 }>()
 
-const showLinks = ref(false);
+const showLinks = ref(true);
 const SVGOverlay = ref<SVGElement>();
 const cameraImage = ref<HTMLImageElement>();
 const imageContainer = ref<HTMLDivElement>();
